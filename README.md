@@ -102,6 +102,6 @@ public/assets/             Artwork and three short CC0 sound clips
 tests/                     Hold timing, geometry, and unlock checks
 ```
 
-Tracing samples independent SVG paths using `getTotalLength()` and `getPointAtLength()`. Completion requires at least 95% of **every independent stroke**, with both ends of each stroke visited. A wide 35-screen-pixel sideways tolerance remains, but a touch only paints the nearest stroke and at most five pixels of extra length along it. This prevents I/T stems from filling their horizontal bars. Repeated touches do not inflate coverage; large pointer jumps do not paint skipped sections.
+Tracing samples independent SVG paths using `getTotalLength()` and `getPointAtLength()`. Completion requires at least 95% of **every independent stroke**, with both ends of each stroke visited. A wide 35-screen-pixel sideways tolerance remains, but a touch only paints the nearest stroke and at most five pixels of extra length along it. A 12-screen-pixel allowance around each stroke endpoint lets a finger finish the visible road cap without pixel-perfect placement. This prevents I/T stems from filling their horizontal bars. Repeated touches do not inflate coverage; large pointer jumps do not paint skipped sections.
 
 Artwork details are in [docs/ARTWORK.md](docs/ARTWORK.md). The three Freesound CC0 recordings and adaptations are credited in [CREDITS.md](CREDITS.md). They are bundled locally rather than streamed during play.

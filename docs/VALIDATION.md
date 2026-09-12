@@ -66,3 +66,10 @@ Before handing the tablet to Collins, verify long-press opening and early-releas
 - Verified one complete randomly selected delivery, partial tracing remaining incomplete, full tracing completing the mission, matching personalized speech, and a different letter on replay. Portrait and landscape had no horizontal overflow or page exceptions.
 - Verified the Kenney truck and all three scenery batches load, and inspected the rendered truck/scenery. Blocking model requests retained a working procedural truck and driving controls without page exceptions.
 - Browser speech was intercepted to check requested text. Physical tablet frame rate, voice output, and touch feel remain device checks.
+
+## Y delivery tracing correction — September 12, 2026
+
+- Reproduced incomplete Y with natural two-stroke drawing and 8–12 screen pixels of finger offset: tiny unpainted endpoint bins blocked otherwise substantially completed letters.
+- Added a 12-screen-pixel stroke-cap allowance. Every stroke still requires 95% coverage; touching only endpoints cannot complete Y, and incomplete I/T bars remain incomplete.
+- Production build, lint, and all 27 regression tests pass, including offset Y traces at three scales.
+- Local production Chromium at 390×844 drove to the barn with a test-only Y selection fixture, then used touch events to trace Y 10 pixels off-center. The missing right arm correctly blocked completion; adding it completed delivery, requested Collins's praise, and saved Y. No page exceptions occurred. The production random letter pool is unchanged.

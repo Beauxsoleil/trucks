@@ -48,6 +48,20 @@ export function markCoverage(bins: RoadBin[], covered: Set<number>, point: Point
   }
   const nearest = nearestTo(point);
   if (nearest.index < 0 || nearest.best > 35) return false;
+  // A finger can reach a visible road cap without hitting its exact center.
+  // Credit only the small cap area, including shared junctions; the rest of
+  // every stroke still needs 95% coverage. This avoids stranded Y endpoints.
+  bins.forEach((bin, index) => {
+    for (const direction of [1, -1]) {
+      if (bins[index - direction]?.stroke === bin.stroke) continue;
+      const endpoint = transform(direction === 1 ? bin.start : bin.end);
+      if (distance(point, endpoint) > 12) continue;
+      for (let i = index; i >= 0 && i < bins.length && bins[i].stroke === bin.stroke; i += direction) {
+        if (distance(screenBins[i], endpoint) > 12) break;
+        covered.add(i);
+      }
+    }
+  });
   const stroke = bins[nearest.index].stroke;
   const prev = previous ? nearestTo(previous) : null;
   // A closed loop has one physical start/end point. Nearest-bin tie breaking

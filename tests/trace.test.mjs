@@ -78,3 +78,25 @@ test('closed loop shared endpoint is traceable without weakening separate stroke
  for(let i=0;i<=150;i++){const point=transform(loop.getPointAtLength(length*i/150));markCoverage(bins,covered,point,transform,previous);previous=point;}
  assert.equal(tracingComplete(bins,covered),true);
 });
+
+const yPolyline=(ps)=>{const ls=ps.slice(1).map((p,i)=>Math.hypot(p.x-ps[i].x,p.y-ps[i].y));return {getTotalLength:()=>ls.reduce((a,b)=>a+b,0),getPointAtLength(d){let i=0;while(i<ls.length-1&&d>ls[i])d-=ls[i++];const t=d/ls[i];return{x:ps[i].x+(ps[i+1].x-ps[i].x)*t,y:ps[i].y+(ps[i+1].y-ps[i].y)*t}}}};
+const left={x:110,y:75},middle={x:210,y:195},right={x:310,y:75},bottom={x:210,y:315};
+
+for (const scale of [.65, 1, 1.6]) test(`Y accepts an off-center natural two-stroke trace at scale ${scale}`,()=>{
+ const bins=samplePaths([yPolyline([left,middle,right]),yPolyline([middle,bottom])]),covered=new Set();
+ const transform=p=>({x:p.x*scale,y:p.y*scale});
+ const trace=path=>{let previous;const n=Math.ceil(path.getTotalLength()*scale/7);for(let i=0;i<=n;i++){
+  const point=transform(path.getPointAtLength(path.getTotalLength()*i/n));point.y+=12;
+  markCoverage(bins,covered,point,transform,previous);previous=point;
+ }};
+ trace(yPolyline([left,middle,bottom]));
+ assert.equal(tracingComplete(bins,covered),false,'missing right arm must not complete Y');
+ trace(yPolyline([right,middle]));
+ assert.equal(tracingComplete(bins,covered),true,'finger-width endpoint offsets must not strand Y');
+});
+test('touching only Y endpoints and junction cannot complete the letter',()=>{
+ const bins=samplePaths([yPolyline([left,middle,right]),yPolyline([middle,bottom])]),covered=new Set();
+ for(const point of [left,middle,right,bottom])markCoverage(bins,covered,point,identity);
+ assert.equal(tracingComplete(bins,covered),false);
+ assert.ok(coveredFraction(bins,covered)<.3);
+});
