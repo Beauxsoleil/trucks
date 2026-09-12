@@ -18,3 +18,20 @@
 .drive-loading button, .drive-loading a { border: 3px solid #16374a; border-radius: 16px; background: #ffe778; padding: 14px 22px; font-weight: 800; }
 .drive-loading h2 { font-size: 30px; font-weight: 900; }
 @media (max-height: 480px) and (orientation: landscape) { .drive-header { padding-top: 8px; } .drive-home { min-height: 50px; font-size: 22px; } .drive-message { margin-top: 0; font-size: 19px; padding: 5px 14px; } .drive-pedals { bottom: 14px; } .drive-pedals button { min-height: 95px; width: 145px; } }
+.delivery-hud { display: flex; justify-content: center; align-items: center; gap: 14px; padding: 0 16px; }
+.delivery-hud .drive-message { margin: 0; }
+.delivery-slots { display: flex; gap: 8px; }
+.delivery-slots > span { position: relative; display: grid; place-items: center; width: 54px; height: 56px; background: #fff8e9bb; border: 3px dashed #61747b; border-radius: 13px; color: #61747b; font-weight: 900; font-size: 36px; }
+.delivery-slots > .collected { background: #ffe778; color: #17394b; border: 3px solid #17394b; }
+.delivery-slots small { position: absolute; bottom: -3px; right: 1px; font-size: 19px; color: #246b43; }
+.delivery-intro, .delivery-finished { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); width: min(440px, calc(100% - 36px)); border: 3px solid #17394b; border-radius: 25px; padding: 16px; background: #fff8e9f5; text-align: center; font-size: 23px; font-weight: 700; }
+.delivery-intro button, .delivery-finished button { display: block; margin-top: 12px; width: 100%; min-height: 66px; border: 3px solid #17394b; border-radius: 18px; background: #ffe778; font-size: 27px; font-weight: 900; touch-action: manipulation; cursor: pointer; }
+.delivery-finished h2 { font-size: 28px; font-weight: 900; }
+.delivery-trace { position: absolute; top: 88px; bottom: 14px; left: 16px; right: 16px; max-width: 760px; margin: auto; display: flex; flex-direction: column; gap: 6px; padding: 14px; background: #fff8e9; border: 3px solid #17394b; border-radius: 24px; text-align: center; }
+.delivery-trace h2 { font-size: clamp(23px, 3.5vw, 34px); font-weight: 900; }
+.delivery-trace p { font-size: 19px; }
+.delivery-trace .trace-board { flex: 1; min-height: 0; width: 100%; }
+.delivery-trace .trace-canvas { height: 100%; min-height: 0; }
+.delivery-trace:focus { outline: none; }
+@media (max-width: 520px) { .delivery-hud { flex-direction: column; gap: 8px; } .delivery-hud .drive-message { font-size: 20px; } .delivery-slots > span { width: 45px; height: 47px; font-size: 30px; } .drive-header h1 { font-size: 21px; } }
+@media (max-height: 480px) and (orientation: landscape) { .delivery-hud { justify-content: flex-end; padding-right: 20px; } .delivery-slots > span { width: 42px; height: 42px; font-size: 27px; } .delivery-intro, .delivery-finished { width: 330px; left: auto; right: 18px; transform: none; font-size: 19px; padding: 12px; } .delivery-intro button, .delivery-finished button { min-height: 54px; font-size: 24px; } .delivery-trace { top: 68px; padding: 6px 12px; } .delivery-trace p { display: none; } }

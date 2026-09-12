@@ -27,16 +27,47 @@ export function segmentDistance(point: Point, start: Point, end: Point) {
   const t = length2 ? Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.y - start.y) * dy) / length2)) : 0;
   return distance(point, { x: start.x + t * dx, y: start.y + t * dy });
 }
+// Completion is per stroke: long strokes cannot make up for an unfinished bar.
+export function tracingComplete(bins: RoadBin[], covered: Set<number>) {
+  if (!bins.length) return false;
+  const strokes = new Map<number, { total: number; painted: number; first: number; last: number }>();
+  bins.forEach((bin, i) => {
+    const stroke = strokes.get(bin.stroke) ?? { total: 0, painted: 0, first: i, last: i };
+    stroke.total += bin.weight; stroke.last = i;
+    if (covered.has(i)) stroke.painted += bin.weight;
+    strokes.set(bin.stroke, stroke);
+  });
+  return [...strokes.values()].every((s) => s.total > 0 && s.painted / s.total >= 0.95 && covered.has(s.first) && covered.has(s.last));
+}
 export function markCoverage(bins: RoadBin[], covered: Set<number>, point: Point, transform: (point: Point) => Point, previous?: Point) {
   const screenBins = bins.map((bin) => transform(bin.middle));
-  let nearest = -1, best = Infinity;
-  screenBins.forEach((p, i) => { const d = distance(p, point); if (d < best) { nearest = i; best = d; } });
-  if (best > 35) return false;
-  // Interpolate only short connected moves. Jumps never paint skipped sections.
-  const connected = previous && distance(previous, point) <= 70 && screenBins.some((p, i) => bins[i].stroke === bins[nearest].stroke && distance(p, previous) <= 35);
-  screenBins.forEach((p, i) => {
-    const d = connected && bins[i].stroke === bins[nearest].stroke ? segmentDistance(p, previous!, point) : distance(p, point);
-    if (d <= 35) covered.add(i);
-  });
+  function nearestTo(p: Point) {
+    let index = -1, best = Infinity;
+    screenBins.forEach((b, i) => { const d = distance(b, p); if (d < best) { index = i; best = d; } });
+    return { index, best };
+  }
+  const nearest = nearestTo(point);
+  if (nearest.index < 0 || nearest.best > 35) return false;
+  const stroke = bins[nearest.index].stroke;
+  const prev = previous ? nearestTo(previous) : null;
+  // A wide sideways hit area still requires actual movement along the road.
+  // Only the nearest stroke receives paint; crossing T/I cannot fill their bars.
+  let from = nearest.index, to = nearest.index;
+  if (previous && prev && prev.index >= 0 && prev.best <= 35 && bins[prev.index].stroke === stroke && distance(previous, point) <= 70) {
+    const a = Math.min(prev.index, nearest.index), b = Math.max(prev.index, nearest.index);
+    let arc = 0;
+    for (let i = a + 1; i <= b; i++) arc += distance(screenBins[i - 1], screenBins[i]);
+    if (arc <= 90) { from = a; to = b; }
+  }
+  for (let i = from; i <= to; i++) if (bins[i].stroke === stroke) covered.add(i);
+  // At most five screen pixels of longitudinal forgiveness, not a 35px disk.
+  for (const direction of [-1, 1]) {
+    let walked = 0;
+    for (let i = nearest.index + direction; i >= 0 && i < bins.length && bins[i].stroke === stroke; i += direction) {
+      walked += distance(screenBins[i], screenBins[i - direction]);
+      if (walked > 5) break;
+      covered.add(i);
+    }
+  }
   return true;
 }

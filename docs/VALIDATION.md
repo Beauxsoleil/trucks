@@ -48,3 +48,13 @@ Before handing the tablet to Collins, verify long-press opening and early-releas
 - Traced L through browser pointer events: exactly one speech request began “Good job, Collins!”; completion remained saved after reload. No page exceptions occurred in the normal play flow.
 - Simulated graphics-context loss: Try again recreated exactly one canvas and enabled play. With WebGL disabled, the fallback linked successfully to letter tracing.
 - Speech requests were intercepted for automated checks. Real tablet frame rate, pronunciation, volume, and touch feel still require checking on the device. No recorded voice pack or cross-device storage was added.
+
+## Barn delivery and complete strokes — September 12, 2026
+
+- Added one complete, replayable L delivery mission: spoken start, three labeled pickups and filled HUD slots, bridge, automatic barn stop, embedded L tracing, opening doors, a sheep celebration, and personalized speech. Picking up blocks while airborne is intentionally forgiving. No failure state or countdown.
+- Replaced simple truck boxes with original rounded toy models, driver, lights, exhausts, wheel hubs/treads, and suspension. Added original barn, sheep, bridge, fences, trees, and dust. Textures are generated locally; no external art services or downloads are used during play.
+- Fixed early tracing completion: require 95% of each stroke and both endpoints. The 35px sideways hit area remains, but touch coverage follows only the nearest stroke with 5px longitudinal tolerance. T/I intersections cannot fill neighboring bars.
+- All 19 pure tests pass. New tests cover incomplete T and I bars at scales 0.35, 1, and 1.6, missing endpoints, pickup thresholds, and arrival only after all three blocks.
+- Local production Chromium verified T and I remain incomplete with missing/partial bars and complete after all strokes. Verified real simultaneous touch Gas+Jump, release to stop, portrait/landscape layouts, the entire delivery from start to barn/tracing/sheep, exactly one mission-completion speech request, and replay reset. No page exceptions in that flow.
+- Graphics recovery during the mission retained the first block and driving position. Screenshots of intro, portrait and landscape driving, tracing, and delivery celebration were inspected.
+- Browser speech was intercepted to check requests. Physical tablet performance, pronunciation, and touch feel remain real-device checks. Existing saved letter progress is not erased; unfinished missions restart when leaving/reloading the page.

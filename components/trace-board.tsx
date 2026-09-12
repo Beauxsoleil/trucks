@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type PointerEvent } from "react";
-import { coveredFraction, markCoverage, samplePaths, type Point, type RoadBin } from "@/lib/trace-geometry";
+import { tracingComplete, markCoverage, samplePaths, type Point, type RoadBin } from "@/lib/trace-geometry";
 import { LETTERS } from "@/lib/trace-letters";
 
 type Letter = typeof LETTERS[number];
@@ -33,7 +33,7 @@ export function TraceBoard({ letter, onComplete }: { letter: Letter; onComplete:
     previous.current = accepted ? point : undefined;
     if (!accepted) return;
     setPaint([...coverage.current].map((i) => { const b = bins.current[i]; return `M${b.start.x} ${b.start.y}L${b.end.x} ${b.end.y}`; }));
-    if (coveredFraction(bins.current, coverage.current) >= 0.85) {
+    if (tracingComplete(bins.current, coverage.current)) {
       done.current = true; active.current = null; setComplete(true); onComplete();
     }
   }

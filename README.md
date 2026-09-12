@@ -4,9 +4,11 @@ A bright, forgiving monster-truck learning game for Collins, built with Next.js 
 
 ## Play
 
-- **Drive & Jump 3D:** hold the big green Gas pedal to drive a 3D monster truck along an endless dirt track. Release to stop, and tap the yellow Jump button to hop. Gas and Jump work together with two fingers. Steering is automatic; there are no crashes to lose, timers, or game-over screens. Groups of three colorful blocks scatter when hit and repeat along the track.
+- **Letter Delivery 3D:** the first mission is L. Choose **Let's deliver!**, hold Gas to drive, and tap Jump to hop. Collect three L blocks, cross the wooden bridge, and drive to the red barn. The truck stops there so Collins can trace L. Finishing opens the barn, brings out a sheep, and says “Good job, Collins! You delivered the letter L!” **Deliver again** restarts the mission.
+- **A clear, forgiving goal:** three outlined L blocks fill as they are collected. Steering is automatic, pickups work while jumping, and there is no timer or losing. A continuous drive to the barn takes about 30 seconds, plus tracing time.
+- **Toy models:** rounded orange-and-blue truck body, a little driver, lights, rotating treaded tires, visible suspension, landing compression, and dust. The barn, sheep, trees, fences, bridge, and labeled blocks are original procedural models built locally in code.
 - **Keyboard driving:** hold Up Arrow or W for gas and press Space to jump when focus is on the game. The Gas button also supports holding Space/Enter when focused; the Jump button supports normal keyboard activation. Switching away clears held inputs and pauses driving.
-- **3D compatibility:** the playground uses WebGL 2 and loads Three.js only when that mode opens. If 3D cannot start or the graphics context is lost, a retry screen links directly to letter tracing.
+- **3D compatibility:** the playground uses WebGL 2 and loads Three.js only when that mode opens. If 3D cannot start or the graphics context is lost, a retry screen links directly to letter tracing. Retrying after graphics-context loss restores collected blocks and the position in this mission.
 - **Trace & Drive:** drag a finger, mouse, or stylus along the dashed letter road. The truck follows; completed road turns green. Going off the road never removes progress. Lifting and restarting is fine.
 - **Letter order:** L, T, I, F, E, H, then C, O, U. Curves unlock only after the six straight-line letters are completed. Opened letters can be replayed.
 - **Word roads:** IT, FIT, LET, HIT become available when their letters have been completed. Finish the tiles in order to see the truck drive across the word and hear it read aloud.
@@ -31,6 +33,8 @@ Audio starts after interaction. Keep the tablet volume comfortable. Reduced-moti
 ## Progress
 
 Letter/word completion is stored under `collins-truck-trace-v1` in browser `localStorage`. Unlocks are derived from completed items. Progress stays on that browser and origin; clearing site data, switching browsers, or changing the deployed domain does not transfer it. No cross-device sync is configured.
+
+Completing the barn mission saves L to the same letter progress. An unfinished delivery is kept during graphics recovery but starts over after leaving the mode or reloading the page.
 
 If storage is blocked or full, the tracing screen keeps progress in memory while it remains open. The parent panel reports when saved progress cannot be read.
 
@@ -64,7 +68,7 @@ node --test tests/*.test.mjs
 
 ## Deploy to Vercel
 
-**Deployment:** Vercel reported a successful build for commit `a08119e`. The 3D driving update must also finish its own deployment before it appears live. Detailed Vercel logs require access to the `joel-0cb9` workspace.
+**Deployment:** the Git integration builds pushes to `main`. Check the Vercel status on each commit before assuming an update is live. Detailed Vercel logs require access to the `joel-0cb9` workspace.
 
 Import this existing repository: [Beauxsoleil/trucks](https://github.com/Beauxsoleil/trucks).
 
@@ -86,6 +90,8 @@ components/parent-mode.*    Long-press parent panel
 components/smash-game.*     3D playground controls and loading/failure UI
 lib/drive-world.ts          Three.js truck, scenery, rendering and cleanup
 lib/drive-physics.ts        Acceleration, braking, jump and landing
+lib/delivery.ts             Pickup distances and mission stages
+lib/toy-models.ts           Procedural truck, barn, sheep and materials
 components/trace-game.*    Letter/word selection, speech, progress
 components/trace-board.tsx  SVG roads, pointer capture, truck, coverage
 lib/parent-hold.ts          Cancelable three-second hold
@@ -96,6 +102,6 @@ public/assets/             Artwork and three short CC0 sound clips
 tests/                     Hold timing, geometry, and unlock checks
 ```
 
-Tracing samples independent SVG paths using `getTotalLength()` and `getPointAtLength()`. Coverage is length-weighted and completes at 85%. The tolerance is 35 actual screen pixels, even when the SVG is scaled. Repeated touches do not inflate coverage; large pointer jumps do not paint skipped sections.
+Tracing samples independent SVG paths using `getTotalLength()` and `getPointAtLength()`. Completion requires at least 95% of **every independent stroke**, with both ends of each stroke visited. A wide 35-screen-pixel sideways tolerance remains, but a touch only paints the nearest stroke and at most five pixels of extra length along it. This prevents I/T stems from filling their horizontal bars. Repeated touches do not inflate coverage; large pointer jumps do not paint skipped sections.
 
 Artwork details are in [docs/ARTWORK.md](docs/ARTWORK.md). The three Freesound CC0 recordings and adaptations are credited in [CREDITS.md](CREDITS.md). They are bundled locally rather than streamed during play.
