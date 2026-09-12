@@ -9,7 +9,7 @@ A colorful educational monster-truck game for Collins, built in stages in the ex
 - `/smash` and `/trace` route scaffolds with a large return-home link.
 - System fonts; no accounts, ads, analytics, database, or personal-data collection code.
 
-The game routes currently show “Adventure coming soon!” They are intentionally scaffolds: art comes in stage 2, Smash gameplay in stage 3, tracing in stage 4, and parent controls/deployment in stage 5. This stage does not deploy to Vercel.
+The game routes currently show “Adventure coming soon!” They are intentionally scaffolds: stage 2 artwork is complete, Smash gameplay comes in stage 3, tracing in stage 4, and parent controls/deployment in stage 5. This stage does not deploy to Vercel.
 
 ## Run locally
 
@@ -43,5 +43,11 @@ app/
   trace/page.tsx  Trace & Drive scaffold
 components/
   mode-shell.tsx  Shared temporary mode screen
-public/assets/    Reserved for stage 2 art
+public/assets/    Truck, track, and wooden-block PNG assets
 ```
+
+## Stage 2: concept art
+
+The home screen now uses a friendly orange-and-blue truck, rolling-hill dirt track, and three stacked red/blue/yellow blocks. Assets live in `public/assets/`. Next.js Image provides responsive image delivery and reserves image dimensions. The two mode links remain at least 260px tall. Gameplay remains unchanged.
+
+See `docs/ARTWORK.md` for generation prompts and provenance.
