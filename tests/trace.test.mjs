@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {samplePaths, coveredFraction, markCoverage, tracingComplete} from '../lib/trace-geometry.ts';
-import {parseProgress, availableLetters, availableWords} from '../lib/trace-letters.ts';
+import {LETTERS, parseProgress, availableLetters, availableWords} from '../lib/trace-letters.ts';
 const line=(x,y,length)=>({getTotalLength:()=>length,getPointAtLength:d=>({x:x+d,y})});
 const identity=p=>p;
 
@@ -31,13 +31,13 @@ test('35px tolerance remains the same with a scaled SVG',()=>{
  assert.equal(markCoverage(bins,covered,{x:71,y:136},transform),false);
  assert.equal(markCoverage(bins,covered,{x:71,y:135},transform),true);
 });
-test('unlock order, word prerequisites and safe malformed progress',()=>{
- const empty=parseProgress('broken');assert.deepEqual(availableLetters(empty).map(l=>l.name),['L']);
+test('all 26 letters are available; words keep prerequisites and saved data stays safe',()=>{
+ const empty=parseProgress('broken');assert.equal(empty.letters.length,0);assert.equal(availableLetters().map(l=>l.name).join(''),'ABCDEFGHIJKLMNOPQRSTUVWXYZ');
  let p=parseProgress(JSON.stringify({version:1,letters:['L','T','I'],words:[]}));
- assert.deepEqual(availableLetters(p).map(l=>l.name),['L','T','I','F']);
+ assert.equal(availableLetters().length,26);
  assert.deepEqual(availableWords(p),['IT']);
  p=parseProgress(JSON.stringify({version:1,letters:['L','T','I','F','E','H'],words:['IT','BAD','HIT']}));
- assert.deepEqual(availableLetters(p).map(l=>l.name),['L','T','I','F','E','H','C']);
+ assert.equal(availableLetters().length,26);
  assert.deepEqual(p.words,['IT','HIT']);
  assert.deepEqual(parseProgress('{"version":1,"letters":false,"words":{}}').letters,[]);
 });
@@ -62,4 +62,19 @@ test('even 99 percent overall cannot hide a missing stroke endpoint',()=>{
  const bins=samplePaths([line(0,0,200),vertical(100,0,240)]);
  const covered=new Set(bins.map((_,i)=>i));covered.delete(bins.length-1);
  assert.ok(coveredFraction(bins,covered)>.99);assert.equal(tracingComplete(bins,covered),false);
+});
+
+test('every capital has paths and a teaching cue, and old/new saved letters survive',()=>{
+ assert.equal(new Set(LETTERS.map(l=>l.name)).size,26);
+ for(const letter of LETTERS){assert.ok(letter.paths.length);assert.ok(letter.speech.startsWith(letter.name+'.'));for(const path of letter.paths)assert.match(path,/^M\d+ \d+/);}
+ const p=parseProgress(JSON.stringify({version:1,letters:['L','T','I','Z','A','?'],words:['IT']}));
+ assert.deepEqual(p.letters,['A','I','L','T','Z']);assert.deepEqual(p.words,['IT']);
+});
+
+test('closed loop shared endpoint is traceable without weakening separate strokes',()=>{
+ const radius=120,length=2*Math.PI*radius;
+ const loop={getTotalLength:()=>length,getPointAtLength:d=>({x:210+Math.sin(d/radius)*radius,y:195-Math.cos(d/radius)*radius})};
+ const bins=samplePaths([loop]),covered=new Set(),transform=p=>({x:p.x*1.6,y:p.y*1.6});let previous;
+ for(let i=0;i<=150;i++){const point=transform(loop.getPointAtLength(length*i/150));markCoverage(bins,covered,point,transform,previous);previous=point;}
+ assert.equal(tracingComplete(bins,covered),true);
 });

@@ -50,6 +50,14 @@ export function markCoverage(bins: RoadBin[], covered: Set<number>, point: Point
   if (nearest.index < 0 || nearest.best > 35) return false;
   const stroke = bins[nearest.index].stroke;
   const prev = previous ? nearestTo(previous) : null;
+  // A closed loop has one physical start/end point. Nearest-bin tie breaking
+  // must not leave its final bin permanently unpainted (O and Q).
+  const first = bins.findIndex(bin => bin.stroke === stroke);
+  let last = first;
+  while (last + 1 < bins.length && bins[last + 1].stroke === stroke) last++;
+  if ((nearest.index === first || nearest.index === last) && distance(bins[first].start, bins[last].end) < 0.01) {
+    covered.add(first); covered.add(last);
+  }
   // A wide sideways hit area still requires actual movement along the road.
   // Only the nearest stroke receives paint; crossing T/I cannot fill their bars.
   let from = nearest.index, to = nearest.index;

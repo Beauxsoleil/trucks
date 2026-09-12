@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { stepDrive, type DriveState } from "./drive-physics";
+import { loadModel, makeAssetTruck, makeSceneryBatch, disposeModels } from "./model-assets";
 import { toyKit, makeTruck, makeBarn } from "./toy-models";
 import { BARN_DISTANCE, PICKUPS, deliveryAt, type DeliverySnapshot } from "./delivery";
 
@@ -8,26 +9,29 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "low-power" });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
   renderer.setClearColor(0xbfeafa);
-  renderer.domElement.setAttribute("aria-label", "Toy monster truck delivering letter L blocks to a red barn");
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.domElement.setAttribute("aria-label", "Toy monster truck delivering letter blocks to a red barn");
   renderer.domElement.setAttribute("role", "img"); host.appendChild(renderer.domElement);
   const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xbfeafa, 45, 110);
   const camera = new THREE.PerspectiveCamera(48, 1, .1, 150);
-  scene.add(new THREE.HemisphereLight(0xffffff, 0xa78b61, 2.4));
-  const sun = new THREE.DirectionalLight(0xfff2ce, 2.5);sun.position.set(-8,16,6);scene.add(sun);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0xa78b61, 1.8));
+  const sun = new THREE.DirectionalLight(0xfff2ce, 2.5);sun.position.set(-8,16,6);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);
+  Object.assign(sun.shadow.camera,{left:-16,right:16,top:18,bottom:-18,near:1,far:65});sun.shadow.normalBias=.04;scene.add(sun);
   const k = toyKit();
-  k.box(220,.2,220,0x99c781,scene,0,-.2,-40,0);
-  k.box(9,.12,180,0xd3a673,scene,0,-.02,-40,0);
-  const truck=makeTruck(k);scene.add(truck.root);
+  k.box(220,.2,220,0x99c781,scene,0,-.2,-40,0).receiveShadow=true;
+  k.box(9,.12,180,0xd3a673,scene,0,-.02,-40,0).receiveShadow=true;
+  let truck=makeTruck(k, initial.letter);scene.add(truck.root);
   const shadow=k.mesh(new THREE.CircleGeometry(2,24),0xb68b5c,scene,0,.07);shadow.rotation.x=-Math.PI/2;shadow.scale.y=1.3;
-  const cargo = Array.from({length:3},(_,i)=>{const group=new THREE.Group();group.position.set((i-1)*.5,2,1.6);truck.body.add(group);k.box(.43,.43,.43,0xffd768,group);k.label('L','#ffe8a0',.32,.32,group,0,0,.22);return group;});
-  const scenery:{group:THREE.Group;offset:number}[]=[];
+  const cargo = Array.from({length:3},(_,i)=>{const group=new THREE.Group();group.position.set((i-1)*.5,2,1.6);truck.body.add(group);k.box(.43,.43,.43,0xffd768,group);k.label(initial.letter,'#ffe8a0',.32,.32,group,0,0,.22);return group;});
+  const scenery:{group:THREE.Group;tree:THREE.Group;x:number;offset:number;variation:number}[]=[];
   for(let i=0;i<14;i++){
     const group=new THREE.Group();scene.add(group);const side=i%2?-1:1,x=side*(8+(i%3)*3);
-    k.mesh(new THREE.CylinderGeometry(.23,.33,1.8,7),0x8c6745,group,x,.85);
-    k.ball(1.65,i%3?0x549d72:0x78af70,group,x,2.9).scale.y=1.25;
+    const tree=new THREE.Group();tree.position.x=x;group.add(tree);
+    k.mesh(new THREE.CylinderGeometry(.23,.33,1.8,7),0x8c6745,tree,0,.85);
+    k.ball(1.65,i%3?0x549d72:0x78af70,tree,0,2.9).scale.y=1.25;
     for(const z of [0,3])k.box(.2,.9,.2,0xffecc7,group,side*4.8,.45,z);
     k.box(.14,.17,3.2,0xffecc7,group,side*4.8,.65,1.5);
-    scenery.push({group,offset:i*8});
+    scenery.push({group,tree,x,offset:i*8,variation:i%4});
   }
   for(const x of [-35,30])k.mesh(new THREE.ConeGeometry(20,24,5),0x84aaa2,scene,x,10,-80);
   const bridge=new THREE.Group();scene.add(bridge);
@@ -36,16 +40,40 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
   for(const x of [-4.4,4.4]){k.box(.16,.2,9,0xffedc4,bridge,x,1.2);for(const z of [-4,0,4])k.box(.24,1.25,.24,0xffedc4,bridge,x,.65,z);}
   const pickups=PICKUPS.map((position,i)=>{
     const group=new THREE.Group();scene.add(group);k.box(1.7,1.7,1.7,[0xf5b24b,0x67b9da,0xf49d83][i],group,0,1.3,0,.16);
-    k.label('L','#fff1ce',1.3,1.3,group,0,1.3,.86);
-    const reverse=k.label('L','#fff1ce',1.3,1.3,group,0,1.3,-.86);reverse.rotation.y=Math.PI;
+    k.label(initial.letter,'#fff1ce',1.3,1.3,group,0,1.3,.86);
+    const reverse=k.label(initial.letter,'#fff1ce',1.3,1.3,group,0,1.3,-.86);reverse.rotation.y=Math.PI;
     return {group,position};
   });
-  const barn=makeBarn(k);scene.add(barn.root);
+  const barn=makeBarn(k, initial.letter);scene.add(barn.root);
   const dust=Array.from({length:8},()=>{const p=k.ball(.14,0xdfbd86,scene);p.visible=false;return p;});
   let state:DriveState={distance:initial.distance,speed:0,height:0,verticalSpeed:0};
   let phase=initial.phase,collected=initial.collected;
   let gas=false,jump=false,paused=document.hidden,disposed=false;
   let time=0,previous=0,landing=0,celebration=initial.phase==='delivered'?2:0;
+  const retired:THREE.Object3D[]=[];
+  const forests:ReturnType<typeof makeSceneryBatch>[]=[];
+  const loading=new AbortController();const loadTimeout=setTimeout(()=>loading.abort(),10000);
+  void Promise.allSettled(['truck','wheel-tractor-dark-back','tree_oak','tree_pineRoundA','rock_largeA'].map(name=>loadModel(name,loading.signal))).then(results=>{
+    clearTimeout(loadTimeout);
+    const assets=results.map(result=>result.status==='fulfilled'?result.value:null);
+    if(disposed){disposeModels(assets.filter((asset):asset is THREE.Group=>asset!==null));return;}
+    retired.push(...assets.filter((asset):asset is THREE.Group=>asset!==null));
+    if(assets[0]&&assets[1]){
+      try {
+        const upgraded=makeAssetTruck(assets[0],assets[1],k,initial.letter);
+        cargo.forEach(item=>{upgraded.body.add(item);item.position.y=1.65;});
+        retired.push(truck.root);scene.remove(truck.root);truck=upgraded;scene.add(truck.root);
+        renderer.domElement.dataset.truckModel='kenney';
+      } catch { /* Keep the original playable truck if an asset is incompatible. */ }
+    }
+    for(const variant of [0,1]){
+      const template=assets[variant+2];if(!template)continue;
+      const sites=scenery.filter((_,i)=>i%2===variant);sites.forEach(site=>site.tree.visible=false);
+      forests.push(makeSceneryBatch(template,sites,scene,variant?4.7:4.1));
+    }
+    if(assets[4])forests.push(makeSceneryBatch(assets[4],scenery.filter((_,i)=>i%3===0).map(site=>({...site,x:site.x*.7,offset:site.offset+4})),scene,.6));
+    renderer.domElement.dataset.natureModels=String(forests.length);
+  });
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
   function resize(){
     const w=Math.max(1,host.clientWidth),h=Math.max(1,host.clientHeight);
@@ -77,6 +105,7 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     for(const wheel of truck.wheels)wheel.rotation.x=-state.distance/.8;
     shadow.scale.set(1-state.height*.1,1.3-state.height*.1,1);
     for(const item of scenery)item.group.position.z=((state.distance+item.offset)%112)-94;
+    for(const forest of forests)forest.update(state.distance);
     bridge.position.z=state.distance-110;
     pickups.forEach((item,i)=>{item.group.position.z=state.distance-item.position;item.group.visible=i>=collected;});
     cargo.forEach((item,i)=>item.visible=i<collected&&phase!=='delivered');
@@ -89,7 +118,7 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     barn.sheep.position.y=reduced.matches?0:Math.abs(Math.sin(celebration*7))*Math.max(0,1-celebration/2)*.25;
     dust.forEach((p,i)=>{p.visible=!reduced.matches&&phase==='driving'&&state.speed>2&&state.height<.3;const cycle=(time*1.8+i/8)%1;p.position.set((i%2?1:-1)*(1.2+cycle*.6),.15+cycle*.5,1.5+cycle*3);p.scale.setScalar((1-cycle)*1.6);});
     renderer.domElement.dataset.speed=state.speed.toFixed(2);renderer.domElement.dataset.height=state.height.toFixed(2);
-    renderer.domElement.dataset.distance=state.distance.toFixed(2);renderer.domElement.dataset.phase=phase;renderer.domElement.dataset.collected=String(collected);
+    renderer.domElement.dataset.distance=state.distance.toFixed(2);renderer.domElement.dataset.phase=phase;renderer.domElement.dataset.collected=String(collected);renderer.domElement.dataset.letter=initial.letter;
     renderer.render(scene,camera);
   });
   return {
@@ -98,12 +127,12 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     gas(value:boolean){gas=phase==='driving'&&value;},
     jump(){if(!paused&&phase==='driving')jump=true;},
     pause(value:boolean){paused=value;gas=false;jump=false;state.speed=0;previous=0;},
-    snapshot():DeliverySnapshot{return {distance:state.distance,collected,phase};},
+    snapshot():DeliverySnapshot{return {distance:state.distance,collected,phase,letter:initial.letter};},
     dispose(){
       disposed=true;renderer.setAnimationLoop(null);observer.disconnect();renderer.domElement.removeEventListener('webglcontextlost',lost);
-      const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>();
-      scene.traverse(object=>{if(object instanceof THREE.Mesh){geometries.add(object.geometry);const list=Array.isArray(object.material)?object.material:[object.material];list.forEach(m=>materials.add(m));}});
-      geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());k.textures.forEach(t=>t.dispose());
+      loading.abort();clearTimeout(loadTimeout);disposeModels([scene,...retired]);
+      // Canvas-generated sign textures also belong to this scene.
+      k.textures.forEach(t=>t.dispose());sun.shadow.map?.dispose();
       renderer.dispose();renderer.forceContextLoss();renderer.domElement.remove();
     },
   };

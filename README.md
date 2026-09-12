@@ -4,13 +4,13 @@ A bright, forgiving monster-truck learning game for Collins, built with Next.js 
 
 ## Play
 
-- **Letter Delivery 3D:** the first mission is L. Choose **Let's deliver!**, hold Gas to drive, and tap Jump to hop. Collect three L blocks, cross the wooden bridge, and drive to the red barn. The truck stops there so Collins can trace L. Finishing opens the barn, brings out a sheep, and says “Good job, Collins! You delivered the letter L!” **Deliver again** restarts the mission.
-- **A clear, forgiving goal:** three outlined L blocks fill as they are collected. Steering is automatic, pickups work while jumping, and there is no timer or losing. A continuous drive to the barn takes about 30 seconds, plus tracing time.
-- **Toy models:** rounded orange-and-blue truck body, a little driver, lights, rotating treaded tires, visible suspension, landing compression, and dust. The barn, sheep, trees, fences, bridge, and labeled blocks are original procedural models built locally in code.
+- **Letter Delivery 3D:** each mission chooses a random uppercase letter A–Z. Choose **Let's deliver!**, hold Gas to drive, and tap Jump to hop. Collect three matching letter blocks, cross the wooden bridge, and drive to the red barn. The truck stops there so Collins can trace the chosen letter. Finishing opens the barn, brings out a sheep, and says “Good job, Collins! You delivered the chosen letter!” **Deliver again** picks a different letter.
+- **A clear, forgiving goal:** three outlined letter blocks fill as they are collected. Steering is automatic, pickups work while jumping, and there is no timer or losing. A continuous drive to the barn takes about 30 seconds, plus tracing time.
+- **3D models:** locally bundled Kenney CC0 pickup body, oversized tractor tires, oak/pine trees, and rocks, with soft shadows, rotating wheels, suspension, and dust. Repeated scenery shares geometry. Original procedural models provide the barn, sheep, bridge, fences, blocks, and a fallback truck while assets load or if loading fails. See [model research](docs/MODEL_RESEARCH.md) and [asset provenance](public/assets/models/README.md).
 - **Keyboard driving:** hold Up Arrow or W for gas and press Space to jump when focus is on the game. The Gas button also supports holding Space/Enter when focused; the Jump button supports normal keyboard activation. Switching away clears held inputs and pauses driving.
 - **3D compatibility:** the playground uses WebGL 2 and loads Three.js only when that mode opens. If 3D cannot start or the graphics context is lost, a retry screen links directly to letter tracing. Retrying after graphics-context loss restores collected blocks and the position in this mission.
 - **Trace & Drive:** drag a finger, mouse, or stylus along the dashed letter road. The truck follows; completed road turns green. Going off the road never removes progress. Lifting and restarting is fine.
-- **Letter order:** L, T, I, F, E, H, then C, O, U. Curves unlock only after the six straight-line letters are completed. Opened letters can be replayed.
+- **Full alphabet:** all 26 uppercase letters A–Z are available immediately and can be replayed. Each independent stroke must be traced before a letter completes.
 - **Word roads:** IT, FIT, LET, HIT become available when their letters have been completed. Finish the tiles in order to see the truck drive across the word and hear it read aloud.
 
 Speech uses the browser/device voice. **Hear** repeats a letter's name, approximate sound, and example word. Completing any letter (including a word tile) says “Good job, Collins!” before the letter teaching cue. The same praise appears on-screen. Installed voices vary; this is not a recorded phonics voice pack. Missing or blocked speech does not stop the game.
@@ -32,9 +32,9 @@ Audio starts after interaction. Keep the tablet volume comfortable. Reduced-moti
 
 ## Progress
 
-Letter/word completion is stored under `collins-truck-trace-v1` in browser `localStorage`. Unlocks are derived from completed items. Progress stays on that browser and origin; clearing site data, switching browsers, or changing the deployed domain does not transfer it. No cross-device sync is configured.
+Letter/word completion is stored under `collins-truck-trace-v1` in browser `localStorage`. Word unlocks are derived from completed letters. Existing saved progress remains compatible. Progress stays on that browser and origin; clearing site data, switching browsers, or changing the deployed domain does not transfer it. No cross-device sync is configured.
 
-Completing the barn mission saves L to the same letter progress. An unfinished delivery is kept during graphics recovery but starts over after leaving the mode or reloading the page.
+Completing the barn mission saves its chosen letter to the same letter progress. An unfinished delivery is kept during graphics recovery but starts over after leaving the mode or reloading the page.
 
 If storage is blocked or full, the tracing screen keeps progress in memory while it remains open. The parent panel reports when saved progress cannot be read.
 
@@ -97,7 +97,7 @@ components/trace-board.tsx  SVG roads, pointer capture, truck, coverage
 lib/parent-hold.ts          Cancelable three-second hold
 lib/smash-audio.ts          Local sound loading and playback
 lib/trace-geometry.ts       Length sampling and 35px coverage tolerance
-lib/trace-letters.ts        Letter paths, unlock rules, saved data validation
+lib/trace-letters.ts        A–Z paths, word unlock rules, saved data validation
 public/assets/             Artwork and three short CC0 sound clips
 tests/                     Hold timing, geometry, and unlock checks
 ```

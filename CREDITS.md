@@ -23,3 +23,7 @@ A quiet generated triangle-wave cue covers the first tap if audio decoding has n
 ## Artwork
 
 The truck, hills/track, and stacked blocks were generated for this project using OpenAI image generation. They are not Kenney downloads. See `docs/ARTWORK.md` for prompts and asset details. The separate animated block shapes in Smash Mode are CSS shapes matching the red, blue, and yellow concept palette.
+
+## 3D pickup, tires, trees, and rocks
+
+Kenney — [Car Kit 3.1](https://kenney.nl/assets/car-kit) and [Nature Kit 1.0](https://kenney.nl/assets/nature-kit), released under CC0. Selected GLBs are bundled locally, with textures embedded where needed. Pickup proportions, oversized wheels, suspension, letter plate, and cargo are adapted in application code. Original license notices and SHA-256 hashes are in [public/assets/models](public/assets/models/README.md).

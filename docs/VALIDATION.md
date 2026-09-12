@@ -58,3 +58,11 @@ Before handing the tablet to Collins, verify long-press opening and early-releas
 - Local production Chromium verified T and I remain incomplete with missing/partial bars and complete after all strokes. Verified real simultaneous touch Gas+Jump, release to stop, portrait/landscape layouts, the entire delivery from start to barn/tracing/sheep, exactly one mission-completion speech request, and replay reset. No page exceptions in that flow.
 - Graphics recovery during the mission retained the first block and driving position. Screenshots of intro, portrait and landscape driving, tracing, and delivery celebration were inspected.
 - Browser speech was intercepted to check requests. Physical tablet performance, pronunciation, and touch feel remain real-device checks. Existing saved letter progress is not erased; unfinished missions restart when leaving/reloading the page.
+
+## Full alphabet and imported models — September 12, 2026
+
+- Production build, ESLint, and all 23 regression tests pass. Coverage includes all 26 definitions, random selection across A–Z with no immediate replay repeat, compatible saved progress, self-contained GLB buffers/textures, and the existing incomplete I/T stroke checks.
+- Local production Chromium traced every letter A–Z through actual SVG geometry and pointer events; all 26 completions survived reload. Fixed closed-loop endpoint ties found while checking O, without reducing independent-stroke requirements.
+- Verified one complete randomly selected delivery, partial tracing remaining incomplete, full tracing completing the mission, matching personalized speech, and a different letter on replay. Portrait and landscape had no horizontal overflow or page exceptions.
+- Verified the Kenney truck and all three scenery batches load, and inspected the rendered truck/scenery. Blocking model requests retained a working procedural truck and driving controls without page exceptions.
+- Browser speech was intercepted to check requested text. Physical tablet frame rate, voice output, and touch feel remain device checks.

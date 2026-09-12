@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { EMPTY_PROGRESS, STORAGE_KEY, parseProgress, type Progress } from "@/lib/trace-letters";
+import { EMPTY_PROGRESS, LETTERS, WORDS, STORAGE_KEY, parseProgress, type Progress } from "@/lib/trace-letters";
 import { createParentHold } from "@/lib/parent-hold";
 import "./parent-mode.css";
 
@@ -51,8 +51,8 @@ export default function ParentMode() {
       <h2 id="parent-title">Parent mode</h2>
       <p>A little progress, one happy drive at a time.</p>
       {storageAvailable ? <dl className="parent-progress">
-        <div><dt>Letters completed</dt><dd>{progress.letters.length} / 9</dd></div>
-        <div><dt>Words completed</dt><dd>{progress.words.length} / 4</dd></div>
+        <div><dt>Letters completed</dt><dd>{progress.letters.length} / {LETTERS.length}</dd></div>
+        <div><dt>Words completed</dt><dd>{progress.words.length} / {WORDS.length}</dd></div>
       </dl> : <p>Saved progress isn’t available in this browser.</p>}
       {progress.letters.length > 0 && <p><strong>Letter roads:</strong> {progress.letters.join(", ")}</p>}
       {progress.words.length > 0 && <p><strong>Word roads:</strong> {progress.words.join(", ")}</p>}

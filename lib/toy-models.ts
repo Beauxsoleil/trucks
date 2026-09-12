@@ -29,7 +29,7 @@ export function toyKit() {
 }
 export type ToyKit = ReturnType<typeof toyKit>;
 
-export function makeTruck(k: ToyKit) {
+export function makeTruck(k: ToyKit, letter: string) {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
   k.box(2.2, .6, 3.8, 0xf89735, body, 0, 1.48, 0, .18);
   k.box(2.12, .16, 3.6, 0x2c7dad, body, 0, 1.17);
@@ -56,7 +56,7 @@ export function makeTruck(k: ToyKit) {
     const exhaust=k.mesh(new THREE.CylinderGeometry(.09,.09,1.1,8),0xcbd6db,body,x,2.4,1.52);
     exhaust.rotation.z=x>0?-.08:.08;
   }
-  k.label("L", "#ffedac", .7,.65,body,0,1.57,1.92);
+  k.label(letter, "#ffedac", .7,.65,body,0,1.57,1.92);
   const wheels:THREE.Group[]=[],springs:THREE.Object3D[]=[];
   for(const x of [-1.26,1.26])for(const z of [-1.22,1.22]) {
     const wheel=new THREE.Group();wheel.position.set(x,.8,z);root.add(wheel);wheels.push(wheel);
@@ -71,7 +71,7 @@ export function makeTruck(k: ToyKit) {
   return {root,body,wheels,springs};
 }
 
-export function makeBarn(k:ToyKit) {
+export function makeBarn(k:ToyKit, letter: string) {
   const root=new THREE.Group();
   k.box(9,5.6,6,0xb94f40,root,0,2.8,0,.12);
   for(let x=-4;x<=4;x+=.7)k.box(.08,5.5,.08,0xd5684b,root,x,2.8,3.06,.02);
@@ -93,7 +93,7 @@ export function makeBarn(k:ToyKit) {
     for(const x of [-side*.1,-side*2])k.box(.15,4.1,.12,0xfff1d1,pivot,x,2.1,.14);
     const brace=k.box(.13,4.5,.12,0xfff1d1,pivot,-side*1.05,2.1,.15);brace.rotation.z=side*.43;
   }
-  k.label("L", "#fff1ce", 1.35,1.35,root,0,5.12,3.17);
+  k.label(letter, "#fff1ce", 1.35,1.35,root,0,5.12,3.17);
   for(const x of [-4.55,4.55])k.box(.22,5.6,.22,0xfff1d1,root,x,2.8,3.1);
   const lamp=k.ball(.32,0xffd768,root,0,4.3,3.55);
   const glow=new THREE.PointLight(0xffda73,0,12);glow.position.set(0,3,4);root.add(glow);

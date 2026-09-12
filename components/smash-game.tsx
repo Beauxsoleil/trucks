@@ -3,22 +3,23 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { SmashAudio } from "@/lib/smash-audio";
 import { TraceBoard } from "@/components/trace-board";
-import { LETTERS, STORAGE_KEY, parseProgress, saveProgress } from "@/lib/trace-letters";
-import type { DeliverySnapshot, MissionPhase } from "@/lib/delivery";
+import { LETTERS, STORAGE_KEY, parseProgress, saveProgress, type LetterName } from "@/lib/trace-letters";
+import { chooseDeliveryLetter, type DeliverySnapshot, type MissionPhase } from "@/lib/delivery";
 import type { createDriveWorld } from "@/lib/drive-world";
 import "./smash-game.css";
 import "./trace-game.css";
 
 type World=ReturnType<typeof createDriveWorld>;
-const newMission=():DeliverySnapshot=>({distance:0,collected:0,phase:'intro'});
+const newMission=(letter:LetterName):DeliverySnapshot=>({distance:0,collected:0,phase:'intro',letter});
 function speak(text:string){
   try{if('speechSynthesis' in window&&'SpeechSynthesisUtterance' in window){window.speechSynthesis.cancel();const words=new SpeechSynthesisUtterance(text);words.lang='en-US';words.rate=.85;window.speechSynthesis.speak(words);}}catch{/* Text and pictures remain available. */}
 }
 export default function SmashGame(){
   const host=useRef<HTMLDivElement>(null),tracePanel=useRef<HTMLElement>(null);
   const world=useRef<World|null>(null),audio=useRef<SmashAudio|null>(null);
-  const inputs=useRef(new Set<string>()),recovery=useRef<DeliverySnapshot>(newMission());
+  const inputs=useRef(new Set<string>()),recovery=useRef<DeliverySnapshot|null>(null);
   const phaseRef=useRef<MissionPhase>('intro');
+  const [letter,setLetter]=useState<LetterName>('A');
   const [phase,setPhase]=useState<MissionPhase>('intro');
   const [ready,setReady]=useState(false),[failed,setFailed]=useState(false),[gas,setGas]=useState(false);
   const [collected,setCollected]=useState(0),[attempt,setAttempt]=useState(0);
@@ -30,26 +31,28 @@ export default function SmashGame(){
     if(down){audio.current?.unlock();audio.current?.play('rev',.18);}if(!pressed)audio.current?.stop();
   }
   function jump(){if(phaseRef.current==='driving'){audio.current?.unlock();world.current?.jump();}}
-  function start(){if(!ready)return;changePhase('driving');world.current?.start();audio.current?.unlock();speak("Collins, let's find L! Collect three L blocks and take them to the barn.");}
+  function start(){if(!ready)return;changePhase('driving');world.current?.start();audio.current?.unlock();speak(`Collins, let's find ${letter}! Collect three ${letter} blocks and take them to the barn.`);}
   function finish(){
     if(phaseRef.current!=='tracing')return;
     changePhase('delivered');world.current?.finish();
     let saved=parseProgress(null);try{saved=parseProgress(localStorage.getItem(STORAGE_KEY));}catch{/* Optional storage. */}
-    saveProgress({...saved,letters:[...new Set([...saved.letters,'L'])]});
-    speak('Good job, Collins! You delivered the letter L!');
+    saveProgress({...saved,letters:[...new Set([...saved.letters,letter])]});
+    speak(`Good job, Collins! You delivered the letter ${letter}!`);
   }
-  function replay(){recovery.current=newMission();changePhase('intro');setCollected(0);setGas(false);setReady(false);setFailed(false);setAttempt(n=>n+1);}
+  function replay(){const next=chooseDeliveryLetter(letter);recovery.current=newMission(next);setLetter(next);changePhase('intro');setCollected(0);setGas(false);setReady(false);setFailed(false);setAttempt(n=>n+1);}
   useEffect(()=>{if(phase==='tracing')tracePanel.current?.focus();},[phase]);
   useEffect(()=>{
     let disposed=false;const activeInputs=inputs.current;audio.current=new SmashAudio();
     const fail=()=>{if(disposed)return;if(world.current)recovery.current=world.current.snapshot();setFailed(true);setReady(false);activeInputs.clear();setGas(false);audio.current?.stop();};
     void import('@/lib/drive-world').then(({createDriveWorld})=>{
       if(disposed||!host.current)return;
+      const mission=recovery.current??newMission(chooseDeliveryLetter());
+      recovery.current=mission;setLetter(mission.letter);
       world.current=createDriveWorld(host.current,{
-        collect:count=>{setCollected(count);speak(count===3?'Three L blocks! Drive to the barn!':count===1?'One L block!':'Two L blocks!');},
-        arrive:()=>{activeInputs.clear();setGas(false);audio.current?.stop();changePhase('tracing');speak('We made it! Trace L to deliver your blocks.');},
+        collect:count=>{setCollected(count);speak(count===3?`Three ${mission.letter} blocks! Drive to the barn!`:count===1?`One ${mission.letter} block!`:`Two ${mission.letter} blocks!`);},
+        arrive:()=>{activeInputs.clear();setGas(false);audio.current?.stop();changePhase('tracing');speak(`We made it! Trace ${mission.letter} to deliver your blocks.`);},
         failure:fail,
-      },recovery.current);setReady(true);
+      },mission);setReady(true);
     }).catch(fail);
     const stop=()=>{activeInputs.clear();world.current?.pause(true);setGas(false);audio.current?.stop();window.speechSynthesis?.cancel();};
     const resume=()=>{if(!document.hidden)world.current?.pause(false);};
@@ -67,13 +70,13 @@ export default function SmashGame(){
     <div className="drive-world" ref={host}/>
     <header className="drive-header"><Link href="/" className="drive-home">⌂ Home</Link><h1>Collins&apos;s Letter Delivery</h1></header>
     {(phase==='driving'||phase==='intro')&&<div className="delivery-hud">
-      <p className="drive-message" role="status">{collected===3?'To the barn! →':'Find three L blocks'}</p>
-      <div className="delivery-slots" aria-label={`${collected} of 3 letter L blocks collected`}>{[0,1,2].map(i=><span key={i} className={i<collected?'collected':''} aria-hidden="true">L{i<collected&&<small>✓</small>}</span>)}</div>
+      <p className="drive-message" role="status">{collected===3?'To the barn! →':`Find three ${letter} blocks`}</p>
+      <div className="delivery-slots" aria-label={`${collected} of 3 letter ${letter} blocks collected`}>{[0,1,2].map(i=><span key={i} className={i<collected?'collected':''} aria-hidden="true">{letter}{i<collected&&<small>✓</small>}</span>)}</div>
     </div>}
     {!ready&&<div className="drive-loading" role="status">{failed?<><h2>The truck needs a restart</h2><p>Try again, or enjoy a letter road.</p><button onClick={()=>{setFailed(false);setAttempt(n=>n+1);}}>Try again ↻</button><Link href="/trace">Play letter roads →</Link></>:"Getting your truck ready…"}</div>}
-    {ready&&phase==='intro'&&<section className="delivery-intro"><p>Collect L blocks.<br/>Deliver them to the barn!</p><button onClick={start}>Let&apos;s deliver! →</button></section>}
-    {ready&&phase==='tracing'&&<section ref={tracePanel} tabIndex={-1} className="delivery-trace" aria-label="Trace L to finish the delivery"><h2>Trace L to open the barn!</h2><p>Follow the whole road with your finger.</p><TraceBoard letter={LETTERS[0]} onComplete={finish}/></section>}
-    {ready&&phase==='delivered'&&<section className="delivery-finished"><h2>Good job, Collins!</h2><p>You delivered L! ★</p><button onClick={replay}>Deliver again ↻</button></section>}
+    {ready&&phase==='intro'&&<section className="delivery-intro"><p>Collect {letter} blocks.<br/>Deliver them to the barn!</p><button onClick={start}>Let&apos;s deliver! →</button></section>}
+    {ready&&phase==='tracing'&&<section ref={tracePanel} tabIndex={-1} className="delivery-trace" aria-label={`Trace ${letter} to finish the delivery`}><h2>Trace {letter} to open the barn!</h2><p>Follow the whole road with your finger.</p><TraceBoard letter={LETTERS.find(item=>item.name===letter)!} onComplete={finish}/></section>}
+    {ready&&phase==='delivered'&&<section className="delivery-finished"><h2>Good job, Collins!</h2><p>You delivered {letter}! ★</p><button onClick={replay}>Deliver again ↻</button></section>}
     {phase==='driving'&&<div className="drive-pedals" aria-label="Truck controls">
       <button type="button" className="drive-jump" disabled={!ready} aria-label="Jump" onPointerDown={event=>{if(event.button===0){event.preventDefault();jump();}}} onClick={event=>{if(event.detail===0)jump();}}><span aria-hidden="true">↟</span>Jump</button>
       <button type="button" className="drive-gas" disabled={!ready} aria-label="Gas: hold to drive" aria-pressed={gas}
