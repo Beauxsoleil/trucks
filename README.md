@@ -9,7 +9,7 @@ A colorful educational monster-truck game for Collins, built in stages in the ex
 - `/smash` and `/trace` route scaffolds with a large return-home link.
 - System fonts; no accounts, ads, analytics, database, or personal-data collection code.
 
-The game routes currently show “Adventure coming soon!” They are intentionally scaffolds: stage 2 artwork is complete, Smash gameplay comes in stage 3, tracing in stage 4, and parent controls/deployment in stage 5. This stage does not deploy to Vercel.
+Smash Mode is playable. Trace & Drive remains a scaffold for stage 4; parent controls and deployment are planned for stage 5. This app has not yet been deployed to Vercel.
 
 ## Run locally
 
@@ -39,7 +39,7 @@ app/
   layout.tsx       App metadata and shared layout
   globals.css     Tailwind and shared visual styles
   page.tsx        Two-choice home screen
-  smash/page.tsx  Smash Mode scaffold
+  smash/page.tsx  Smash Mode game entry
   trace/page.tsx  Trace & Drive scaffold
 components/
   mode-shell.tsx  Shared temporary mode screen
@@ -51,3 +51,16 @@ public/assets/    Truck, track, and wooden-block PNG assets
 The home screen now uses a friendly orange-and-blue truck, rolling-hill dirt track, and three stacked red/blue/yellow blocks. Assets live in `public/assets/`. Next.js Image provides responsive image delivery and reserves image dimensions. The two mode links remain at least 260px tall. Gameplay remains unchanged.
 
 See `docs/ARTWORK.md` for generation prompts and provenance.
+
+## Stage 3: Smash Mode
+
+Tap anywhere in the play screen (or press Enter/Space on the large play button). The truck revs for 0.35 seconds, drives for 0.95 seconds, then smashes exactly three blocks. Blocks scatter, confetti appears, and the screen displays 3 while speech says “Three blocks!” After two seconds of celebration the scene resets automatically.
+
+- No scores, penalties, countdown pressure, or losing state.
+- Repeated taps during one cycle do not queue overlapping turns.
+- Home stays available during play; timers/audio are cleaned up on navigation. Hiding the page resets the cycle.
+- Three short CC0 clips are bundled locally. See `CREDITS.md`.
+- Audio unlocks on interaction; unsupported or blocked sound/speech does not stop the visual game.
+- Reduced-motion preferences remove hopping, travel, scattering, and confetti while retaining the count and reset.
+
+Real tablet validation is still needed for touch feel and the device's available speech voice.

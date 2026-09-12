@@ -1,4 +1,5 @@
-import { ModeShell } from "@/components/mode-shell";
+import SmashGame from "@/components/smash-game";
+
 export default function SmashPage() {
-  return <ModeShell title="Smash Mode" symbol="1 2 3" tone="smash" />;
+  return <SmashGame />;
 }
