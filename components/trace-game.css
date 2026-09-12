@@ -42,3 +42,21 @@
 
 .trace-confetti rect { animation: trace-confetti-fall 1300ms ease-out both; }
 @keyframes trace-confetti-fall { from { opacity: 1; transform: translateY(-25px); } to { opacity: 0; transform: translateY(100px); } }
+
+/* Keep the road fully visible while longer choice lists scroll independently. */
+@media (min-width: 651px) and (orientation: landscape) {
+  .trace-game { height: 100svh; min-height: 360px; display: flex; flex-direction: column; padding: 12px 20px 16px; }
+  .trace-header { width: 100%; flex-shrink: 0; margin-bottom: 12px; }
+  .trace-layout { width: 100%; flex: 1; min-height: 0; }
+  .trace-controls { height: 100%; overflow-y: auto; overscroll-behavior-y: contain; padding: 4px 8px 12px 4px; gap: 12px; }
+  .trace-controls h2 { order: 0; }
+  .word-road { order: 1; }
+  .trace-status { order: 2; min-height: 0; }
+  .trace-actions { order: 3; }
+  .hear-letter { order: 4; }
+  .letter-choices { order: 5; }
+  .word-choices { order: 6; }
+  .trace-controls > .trace-button:not(.hear-letter) { order: 7; }
+  .trace-board { height: 100%; }
+  .trace-canvas { height: 100%; min-height: 0; }
+}

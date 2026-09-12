@@ -1,19 +1,40 @@
 # Collins's Monster Truck Adventures
 
-A colorful educational monster-truck game for Collins, built in stages in the existing `Beauxsoleil/trucks` repository.
+A bright, forgiving monster-truck learning game for Collins, built with Next.js App Router, React, TypeScript, and Tailwind CSS. No accounts, ads, analytics, scores to lose, or database.
 
-## Stage 1: project scaffold
+## Play
 
-- Next.js App Router, TypeScript, Tailwind CSS, and ESLint.
-- Home screen with two large choices, each at least 240px tall.
-- `/smash` and `/trace` route scaffolds with a large return-home link.
-- System fonts; no accounts, ads, analytics, database, or personal-data collection code.
+- **Smash Mode:** tap the play screen to rev the truck, drive into three blocks, scatter them, and celebrate with “Three blocks!” The scene resets two seconds after impact. Rapid taps do not queue overlapping turns.
+- **Trace & Drive:** drag a finger, mouse, or stylus along the dashed letter road. The truck follows; completed road turns green. Going off the road never removes progress. Lifting and restarting is fine.
+- **Letter order:** L, T, I, F, E, H, then C, O, U. Curves unlock only after the six straight-line letters are completed. Opened letters can be replayed.
+- **Word roads:** IT, FIT, LET, HIT become available when their letters have been completed. Finish the tiles in order to see the truck drive across the word and hear it read aloud.
 
-Smash Mode is playable. Trace & Drive is playable; parent controls and deployment are planned for stage 5. This app has not yet been deployed to Vercel.
+Speech uses the browser/device voice. **Hear** repeats a letter's name, approximate sound, and example word. Installed voices vary; this is not a recorded phonics voice pack. Missing or blocked speech does not stop the game.
+
+## Parent mode
+
+On the home screen, **hold the truck logo for three seconds**. A settings-free panel shows saved letter/word completion and a short play tip. Choose **Back to game** to close it.
+
+- A normal tap does not open it.
+- Moving more than 15px, releasing early, losing pointer capture, or hiding the page cancels a pending hold.
+- Keyboard: focus the truck logo and hold Space or Enter for three seconds. Escape closes the panel.
+- The panel does not edit or erase progress. It closes when the page loses focus, is hidden, or you navigate away. Parent mode is not kept unlocked between visits.
+
+## Tablet use
+
+Landscape is the main layout. The two home choices remain at least 200px tall on shorter landscape screens. Trace & Drive keeps the letter road visible while longer lists of letter/word choices scroll independently. Portrait layouts remain available; the app does not force orientation or disable page zoom.
+
+Audio starts after interaction. Keep the tablet volume comfortable. Reduced-motion preferences remove decorative movement while retaining the count, completed roads, and resets.
+
+## Progress
+
+Letter/word completion is stored under `collins-truck-trace-v1` in browser `localStorage`. Unlocks are derived from completed items. Progress stays on that browser and origin; clearing site data, switching browsers, or changing the deployed domain does not transfer it. No cross-device sync is configured.
+
+If storage is blocked or full, the tracing screen keeps progress in memory while it remains open. The parent panel reports when saved progress cannot be read.
 
 ## Run locally
 
-Use Node.js 20.9 or later (Node.js 22 LTS recommended).
+Use Node.js 22 LTS or newer (22.18+ to run the dependency-free TypeScript tests).
 
 ```sh
 npm install
@@ -22,65 +43,55 @@ npm run dev
 
 Open http://localhost:3000.
 
-## Verify
+For a production build:
 
 ```sh
-npm run lint
 npm run build
 npm start
 ```
 
-`npm ci` installs the exact versions in the committed lockfile.
-
-## Structure
-
-```text
-app/
-  layout.tsx       App metadata and shared layout
-  globals.css     Tailwind and shared visual styles
-  page.tsx        Two-choice home screen
-  smash/page.tsx  Smash Mode game entry
-  trace/page.tsx  Trace & Drive game entry
-components/
-  mode-shell.tsx  Shared temporary mode screen
-public/assets/    Truck, track, and wooden-block PNG assets
-```
-
-## Stage 2: concept art
-
-The home screen now uses a friendly orange-and-blue truck, rolling-hill dirt track, and three stacked red/blue/yellow blocks. Assets live in `public/assets/`. Next.js Image provides responsive image delivery and reserves image dimensions. The two mode links remain at least 260px tall. Gameplay remains unchanged.
-
-See `docs/ARTWORK.md` for generation prompts and provenance.
-
-## Stage 3: Smash Mode
-
-Tap anywhere in the play screen (or press Enter/Space on the large play button). The truck revs for 0.35 seconds, drives for 0.95 seconds, then smashes exactly three blocks. Blocks scatter, confetti appears, and the screen displays 3 while speech says “Three blocks!” After two seconds of celebration the scene resets automatically.
-
-- No scores, penalties, countdown pressure, or losing state.
-- Repeated taps during one cycle do not queue overlapping turns.
-- Home stays available during play; timers/audio are cleaned up on navigation. Hiding the page resets the cycle.
-- Three short CC0 clips are bundled locally. See `CREDITS.md`.
-- Audio unlocks on interaction; unsupported or blocked sound/speech does not stop the visual game.
-- Reduced-motion preferences remove hopping, travel, scattering, and confetti while retaining the count and reset.
-
-Real tablet validation is still needed for touch feel and the device's available speech voice.
-
-## Stage 4: Trace & Drive
-
-Trace each dashed SVG road with a finger, mouse, or stylus. The truck follows the pointer; covered road turns green. Drifting off the road has no penalty. Finger lifts keep the coverage already earned.
-
-- Letters open in order **L, T, I, F, E, H**, followed by **C, O, U** only after the first six are completed. Previously opened letters can be replayed.
-- Independent SVG strokes use `getTotalLength()` / `getPointAtLength()` and length-weighted coverage bins. Completion triggers once at 85% coverage.
-- The 35px tolerance is measured in screen pixels using the SVG screen transform. Repeated touches do not accumulate extra credit, and large pointer jumps do not fill skipped road.
-- Completion fills the letter, hops the truck, shows confetti/stars, and requests the letter name, approximate sound, and an example word through browser speech synthesis. **Hear** repeats the audio on demand. Actual phonetic pronunciation varies by installed voice; this is not a recorded phonics voice pack.
-- Word roads **IT, FIT, LET, HIT** appear only when their letters are learned (at least three letters completed). Trace each tile in sequence. The finished word gets a truck drive and letter-by-letter/whole-word read-aloud.
-- Versioned progress uses `localStorage` key `collins-truck-trace-v1`. Unlocks are derived from completed letters/words. It stays on this browser/device; clearing site data clears progress. If storage is blocked or full, play and unlocks continue in memory for the current visit.
-- No database, accounts, analytics, or remote progress service.
-
-Geometry and unlock regression checks (Node.js 22.18+ or Node.js 24):
+## Check changes
 
 ```sh
-node --test tests/trace.test.mjs
+npm run lint
+npm run build
+node --test tests/*.test.mjs
 ```
 
-Trace implementation: `components/trace-game.tsx`, `components/trace-board.tsx`, `lib/trace-letters.ts`, and `lib/trace-geometry.ts`. Browser validation details are in `docs/VALIDATION.md`.
+`npm ci` installs the exact dependency versions in the committed lockfile. See [validation notes](docs/VALIDATION.md) for completed checks and device-testing limits.
+
+## Deploy to Vercel
+
+**Status: the app code is ready; no Vercel deployment or live URL has been confirmed yet.** The Vercel account connection is still required.
+
+Import this existing repository: [Beauxsoleil/trucks](https://github.com/Beauxsoleil/trucks).
+
+1. In your Vercel dashboard, choose **Add New → Project** and import `Beauxsoleil/trucks` from the connected GitHub account.
+2. Use the **Next.js** framework preset, repository root (`.`), and production branch `main`.
+3. Keep the default install/build/output settings. No environment variables, Neon project, API keys, or other services are required.
+4. Use your personal Hobby project and select **Deploy**. Wait for **Ready** before using the production URL Vercel provides.
+5. Open that URL on the tablet. Check Smash sound/speech, tracing feel, the long-press parent panel, and progress after reloading.
+
+With the Git integration configured, subsequent pushes to the production branch trigger deployments. Vercel's official instructions: [Git deployments](https://vercel.com/docs/git) and [Next.js on Vercel](https://vercel.com/docs/frameworks/full-stack/nextjs).
+
+This repository uses native Next.js routing. GitHub Pages static hosting is not configured.
+
+## Project structure
+
+```text
+app/                       Home, /smash, /trace, shared layout/styles
+components/parent-mode.*    Long-press parent panel
+components/smash-game.*     Smash interaction and animation
+components/trace-game.*    Letter/word selection, speech, progress
+components/trace-board.tsx  SVG roads, pointer capture, truck, coverage
+lib/parent-hold.ts          Cancelable three-second hold
+lib/smash-audio.ts          Local sound loading and playback
+lib/trace-geometry.ts       Length sampling and 35px coverage tolerance
+lib/trace-letters.ts        Letter paths, unlock rules, saved data validation
+public/assets/             Artwork and three short CC0 sound clips
+tests/                     Hold timing, geometry, and unlock checks
+```
+
+Tracing samples independent SVG paths using `getTotalLength()` and `getPointAtLength()`. Coverage is length-weighted and completes at 85%. The tolerance is 35 actual screen pixels, even when the SVG is scaled. Repeated touches do not inflate coverage; large pointer jumps do not paint skipped sections.
+
+Artwork details are in [docs/ARTWORK.md](docs/ARTWORK.md). The three Freesound CC0 recordings and adaptations are credited in [CREDITS.md](CREDITS.md). They are bundled locally rather than streamed during play.

@@ -22,3 +22,12 @@ The speech method was intercepted to verify the text and call count. Actual voic
 - Disabled localStorage still allowed completing a letter and unlocking the next letter in memory. No browser exceptions occurred.
 
 Speech requests were intercepted during browser tests. Tablet voice pronunciation and physical touch feel still require a real-device check.
+
+## Stage 5
+
+- Production build and ESLint passed after adding the parent panel and landscape styles.
+- Four additional hold-controller regression tests check the exact three-second threshold, normal taps, movement cancellation, repeated key presses, and cancellation before delayed opening. The five tracing/unlock tests remain in the suite.
+- Landscape CSS preserves at least 200px home choices and gives the tracing road a fixed visible area with independently scrollable controls. Final visual verification of these stage-5 changes is pending: the available cloud browser rejected the local preview URL with `ERR_BLOCKED_BY_CLIENT`.
+- Vercel deployment and production-URL verification are pending the Vercel account connection. No live deployment is claimed.
+
+Before handing the tablet to Collins, verify long-press opening and early-release cancellation, Escape/Back to game, comfortable audio, tracing feel, and saved progress on the final production origin.

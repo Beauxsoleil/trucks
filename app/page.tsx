@@ -1,13 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
+import ParentMode from "@/components/parent-mode";
 
 export default function Home() {
   return (
     <main className="home relative isolate flex min-h-svh items-center justify-center overflow-hidden">
       <Image src="/assets/dirt-track.png" alt="" fill sizes="100vw" preload className="pointer-events-none -z-10 object-cover" />
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8 sm:px-10">
+      <div className="home-content mx-auto flex w-full max-w-6xl flex-col gap-6 px-5 py-8 sm:px-10">
         <header className="flex flex-col items-center justify-center gap-3 rounded-[2rem] border-4 bg-[#fff8e9] px-5 py-4 sm:flex-row sm:gap-6">
-          <Image src="/assets/monster-truck.png" alt="A friendly orange-and-blue monster truck with smiling headlights and big tires" width={1536} height={1024} sizes="(min-width: 640px) 220px, 160px" preload className="h-auto w-40 shrink-0 sm:w-[220px]" />
+          <ParentMode />
           <h1 className="text-center font-black tracking-tight sm:text-left">
             <span className="block text-[clamp(1.75rem,3vw,2.5rem)]">Collins&apos;s</span>
             <span className="block text-[clamp(2rem,4.5vw,3.75rem)] leading-[1.05]">Monster Truck<br />Adventures</span>
