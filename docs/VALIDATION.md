@@ -39,3 +39,12 @@ Before handing the tablet to Collins, verify long-press opening and early-releas
 - A normal logo tap stayed closed after three seconds; holding Space opened the parent panel, and Escape closed it.
 - Visual inspection found the parent progress cards clipping on a narrow portrait screen. Changed them to stack below 481px and allowed desktop grid columns to shrink. Rebuilt production and checked the panel at 320×568, 390×844, and 844×390: no horizontal panel overflow; Back to game closed it at every size. Inspected the corrected portrait screenshot.
 - Vercel returned no accessible teams and failed to list projects. A deployed production URL remains unverified. Browser checks used a local production server; physical tablet touch and actual audio remain device checks.
+
+## 3D driving and personalized praise — September 12, 2026
+
+- Replaced the timed 2D Smash sequence with a Three.js playground, automatic steering, held gas, braking on release, jumping, and repeating groups of three smashable blocks. Letter tracing remains a finger-controlled SVG road.
+- Production build and ESLint pass. All 11 pure regression tests pass, including new acceleration, braking, long-frame clamping, jump-in-motion, double-jump prevention, and landing checks.
+- Local Chromium verified keyboard gas/jump/release, real two-finger touch gas+jump, clearing held controls on blur, block collisions, and no horizontal overflow at 1024×768, 844×390, and 390×844. Inspected screenshots and corrected the portrait camera so the entire truck stays visible.
+- Traced L through browser pointer events: exactly one speech request began “Good job, Collins!”; completion remained saved after reload. No page exceptions occurred in the normal play flow.
+- Simulated graphics-context loss: Try again recreated exactly one canvas and enabled play. With WebGL disabled, the fallback linked successfully to letter tracing.
+- Speech requests were intercepted for automated checks. Real tablet frame rate, pronunciation, volume, and touch feel still require checking on the device. No recorded voice pack or cross-device storage was added.

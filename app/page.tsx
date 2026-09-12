@@ -17,7 +17,7 @@ export default function Home() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <Link href="/smash" className="mode-card smash-card flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-[2rem] border-4 border-current p-5 text-center">
             <Image src="/assets/wooden-blocks.png" alt="" width={1024} height={1536} sizes="80px" className="h-[120px] w-20 object-contain" />
-            <span className="text-[clamp(2rem,3.5vw,3rem)] font-black leading-tight">Smash Mode</span>
+            <span className="text-[clamp(2rem,3.5vw,3rem)] font-black leading-tight">Drive &amp; Jump 3D</span>
           </Link>
           <Link href="/trace" className="mode-card trace-card flex min-h-[260px] flex-col items-center justify-center gap-3 rounded-[2rem] border-4 border-current p-5 text-center">
             <span aria-hidden="true" className="flex h-[120px] items-center justify-center gap-3 text-6xl font-black"><span className="-rotate-6">L</span><span className="translate-y-[-8px]">T</span><span className="rotate-6">I</span></span>

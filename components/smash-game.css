@@ -1,31 +1,20 @@
-.smash-game { min-height: 100svh; height: 100svh; min-height: 340px; min-height: max(340px, 100svh); position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; user-select: none; -webkit-user-select: none; touch-action: manipulation; }
-.smash-backdrop { object-fit: cover; z-index: -1; pointer-events: none; }
-.smash-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 24px; }
-.smash-header h1 { font-size: clamp(26px, 4vw, 44px); font-weight: 900; background: #fff8e9; border-radius: 20px; padding: 8px 20px; }
-.smash-home { display: inline-flex; align-items: center; min-height: 64px; padding: 8px 24px; border: 4px solid #16374a; border-radius: 22px; background: #ffe778; font-size: 28px; font-weight: 900; z-index: 2; }
-.smash-play { position: relative; flex: 1; width: 100%; min-height: 240px; cursor: pointer; touch-action: manipulation; border: 0; color: #16374a; }
-.smash-play:focus-visible { outline: 6px solid #16374a; outline-offset: -8px; }
-.smash-prompt { position: absolute; top: 2%; left: 50%; transform: translateX(-50%); width: max-content; max-width: 94%; background: #fff8e9; border: 4px solid #16374a; border-radius: 24px; padding: 10px 24px; font-size: clamp(28px, 4.5vw, 52px); font-weight: 900; }
-.smash-world { position: absolute; left: 50%; transform: translateX(-50%); width: 92%; max-width: 1100px; top: 32%; bottom: 8%; }
-.smash-truck-lane { position: absolute; left: 0; right: 30%; bottom: 0; height: 100%; }
-.smash-truck { position: absolute; bottom: 0; left: 0; width: 45%; max-width: 340px; transition: left 950ms cubic-bezier(.45, 0, .65, 1); }
-.smash-truck img { width: 100%; height: auto; pointer-events: none; }
-[data-phase="revving"] .smash-truck img { animation: truck-rev 120ms ease-in-out infinite alternate; }
-[data-phase="driving"] .smash-truck, [data-phase="celebrating"] .smash-truck { left: 66.5%; }
-[data-phase="ready"] .smash-truck { transition: none; }
-[data-phase="celebrating"] .smash-truck img { animation: truck-hop 500ms ease-out; }
-.smash-stack { position: absolute; left: 78%; bottom: 0; width: clamp(40px, 8vw, 92px); display: flex; flex-direction: column; }
-.smash-block { display: block; aspect-ratio: 1.1; border: clamp(3px, .5vw, 6px) solid #16374a; border-radius: 12%; box-shadow: inset -7px -5px 0 #00000018; }
-[data-phase="celebrating"] .smash-block { animation: block-scatter 850ms ease-in forwards; }
-.block-0 { --dx: 50px; --dy: -120px; --spin: 150deg; }
-.block-1 { --dx: -30px; --dy: -70px; --spin: -140deg; }
-.block-2 { --dx: 65px; --dy: -35px; --spin: 110deg; }
-.smash-count { position: absolute; top: 20%; left: 40%; color: #16374a; background: #ffe778; border: 5px solid #16374a; border-radius: 50%; width: clamp(80px, 15vw, 160px); aspect-ratio: 1; display: grid; place-items: center; font-weight: 900; font-size: clamp(56px, 11vw, 120px); animation: truck-hop 500ms ease-out; }
-.smash-confetti { position: absolute; left: 78%; top: 40%; pointer-events: none; }
-.smash-confetti > span { position: absolute; width: 14px; height: 20px; border-radius: 3px; animation: confetti-pop 1200ms ease-out forwards; }
-@keyframes truck-rev { to { transform: translateY(-4px) rotate(-2deg); } }
-@keyframes truck-hop { 40% { transform: translateY(-20px) rotate(-4deg); } }
-@keyframes block-scatter { 45% { transform: translate(calc(var(--dx) * .6), var(--dy)) rotate(var(--spin)); opacity: 1; } 100% { transform: translate(var(--dx), 100px) rotate(var(--spin)); opacity: 0; } }
-@keyframes confetti-pop { 0% { transform: translate(0, 0); opacity: 1; } 60% { opacity: 1; } 100% { transform: translate(var(--x), var(--y)) rotate(var(--turn)); opacity: 0; } }
-@media (max-width: 500px) { .smash-header { padding: 12px; gap: 8px; } .smash-header h1 { padding: 8px 10px; font-size: 25px; } .smash-home { padding: 8px 14px; font-size: 24px; } .smash-world { top: 40%; bottom: 15%; } }
-@media (prefers-reduced-motion: reduce) { .smash-truck { transition: none; } .smash-game *, .smash-game *::before { animation: none !important; } [data-phase="celebrating"] .smash-block { opacity: 0; } .smash-confetti { display: none; } }
+.drive-game { position: relative; height: 100svh; min-height: 360px; overflow: hidden; background: #bfeafa; color: #16374a; isolation: isolate; }
+.drive-world { position: absolute; inset: 0; z-index: -1; }
+.drive-world canvas { display: block; width: 100%; height: 100%; }
+.drive-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(14px, env(safe-area-inset-top)) 20px 8px; }
+.drive-header h1 { font-size: clamp(20px, 3vw, 36px); font-weight: 900; text-align: right; text-shadow: 0 2px #ffffff99; }
+.drive-home { display: inline-flex; align-items: center; min-height: 60px; flex-shrink: 0; border: 3px solid #16374a; border-radius: 19px; padding: 10px 18px; background: #fff8e9; font-size: 25px; font-weight: 900; }
+.drive-message { margin: 4px auto; padding: 8px 18px; width: fit-content; max-width: calc(100% - 32px); border-radius: 24px; background: #fff8e9e8; text-align: center; font-size: clamp(19px, 2.7vw, 27px); font-weight: 800; }
+.drive-celebrate { background: #ffe778; }
+.drive-pedals { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: max(20px, env(safe-area-inset-left)); right: max(20px, env(safe-area-inset-right)); display: flex; justify-content: space-between; gap: 22px; pointer-events: none; }
+.drive-pedals button { pointer-events: auto; width: clamp(125px, 23vw, 210px); min-height: clamp(100px, 20vh, 155px); display: flex; align-items: center; justify-content: center; flex-direction: column; border: 4px solid #16374a; border-radius: 30px; box-shadow: 0 7px 0 #16374a; color: #16374a; font: inherit; font-size: clamp(29px, 4vw, 42px); font-weight: 900; line-height: 1.1; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; cursor: pointer; }
+.drive-pedals button span { font-size: 42px; }
+.drive-jump { background: #ffe778; }
+.drive-gas { background: #83d9a0; }
+.drive-pedals button:active, .drive-gas[aria-pressed="true"] { transform: translateY(5px); box-shadow: 0 2px 0 #16374a; }
+.drive-pedals button:focus-visible { outline: 5px solid white; outline-offset: 5px; }
+.drive-pedals button:disabled { opacity: .4; cursor: wait; }
+.drive-loading { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; background: #fff8e9; font-size: 24px; text-align: center; z-index: 2; }
+.drive-loading button, .drive-loading a { border: 3px solid #16374a; border-radius: 16px; background: #ffe778; padding: 14px 22px; font-weight: 800; }
+.drive-loading h2 { font-size: 30px; font-weight: 900; }
+@media (max-height: 480px) and (orientation: landscape) { .drive-header { padding-top: 8px; } .drive-home { min-height: 50px; font-size: 22px; } .drive-message { margin-top: 0; font-size: 19px; padding: 5px 14px; } .drive-pedals { bottom: 14px; } .drive-pedals button { min-height: 95px; width: 145px; } }

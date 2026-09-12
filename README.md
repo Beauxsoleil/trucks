@@ -4,12 +4,14 @@ A bright, forgiving monster-truck learning game for Collins, built with Next.js 
 
 ## Play
 
-- **Smash Mode:** tap the play screen to rev the truck, drive into three blocks, scatter them, and celebrate with “Three blocks!” The scene resets two seconds after impact. Rapid taps do not queue overlapping turns.
+- **Drive & Jump 3D:** hold the big green Gas pedal to drive a 3D monster truck along an endless dirt track. Release to stop, and tap the yellow Jump button to hop. Gas and Jump work together with two fingers. Steering is automatic; there are no crashes to lose, timers, or game-over screens. Groups of three colorful blocks scatter when hit and repeat along the track.
+- **Keyboard driving:** hold Up Arrow or W for gas and press Space to jump when focus is on the game. The Gas button also supports holding Space/Enter when focused; the Jump button supports normal keyboard activation. Switching away clears held inputs and pauses driving.
+- **3D compatibility:** the playground uses WebGL 2 and loads Three.js only when that mode opens. If 3D cannot start or the graphics context is lost, a retry screen links directly to letter tracing.
 - **Trace & Drive:** drag a finger, mouse, or stylus along the dashed letter road. The truck follows; completed road turns green. Going off the road never removes progress. Lifting and restarting is fine.
 - **Letter order:** L, T, I, F, E, H, then C, O, U. Curves unlock only after the six straight-line letters are completed. Opened letters can be replayed.
 - **Word roads:** IT, FIT, LET, HIT become available when their letters have been completed. Finish the tiles in order to see the truck drive across the word and hear it read aloud.
 
-Speech uses the browser/device voice. **Hear** repeats a letter's name, approximate sound, and example word. Installed voices vary; this is not a recorded phonics voice pack. Missing or blocked speech does not stop the game.
+Speech uses the browser/device voice. **Hear** repeats a letter's name, approximate sound, and example word. Completing any letter (including a word tile) says “Good job, Collins!” before the letter teaching cue. The same praise appears on-screen. Installed voices vary; this is not a recorded phonics voice pack. Missing or blocked speech does not stop the game.
 
 ## Parent mode
 
@@ -62,7 +64,7 @@ node --test tests/*.test.mjs
 
 ## Deploy to Vercel
 
-**Status: the app code is ready; no Vercel deployment or live URL has been confirmed yet.** The Vercel account connection is still required.
+**Deployment:** Vercel reported a successful build for commit `a08119e`. The 3D driving update must also finish its own deployment before it appears live. Detailed Vercel logs require access to the `joel-0cb9` workspace.
 
 Import this existing repository: [Beauxsoleil/trucks](https://github.com/Beauxsoleil/trucks).
 
@@ -81,7 +83,9 @@ This repository uses native Next.js routing. GitHub Pages static hosting is not 
 ```text
 app/                       Home, /smash, /trace, shared layout/styles
 components/parent-mode.*    Long-press parent panel
-components/smash-game.*     Smash interaction and animation
+components/smash-game.*     3D playground controls and loading/failure UI
+lib/drive-world.ts          Three.js truck, scenery, rendering and cleanup
+lib/drive-physics.ts        Acceleration, braking, jump and landing
 components/trace-game.*    Letter/word selection, speech, progress
 components/trace-board.tsx  SVG roads, pointer capture, truck, coverage
 lib/parent-hold.ts          Cancelable three-second hold
