@@ -1,65 +1,44 @@
 "use client";
-
-import { useRef, useState, type PointerEvent } from "react";
-import { tracingComplete, markCoverage, samplePaths, type Point, type RoadBin } from "@/lib/trace-geometry";
-import { LETTERS } from "@/lib/trace-letters";
-
-type Letter = typeof LETTERS[number];
-export function TraceBoard({ letter, onComplete }: { letter: Letter; onComplete: () => void }) {
-  const paths = useRef<(SVGPathElement | null)[]>([]);
-  const bins = useRef<RoadBin[]>([]);
-  const coverage = useRef(new Set<number>());
-  const active = useRef<number | null>(null);
-  const previous = useRef<Point | undefined>(undefined);
-  const lastPointer = useRef<Point | undefined>(undefined);
-  const done = useRef(false);
-  const [paint, setPaint] = useState<string[]>([]);
-  const [truck, setTruck] = useState(() => { const start = letter.paths[0].match(/^M(\d+) (\d+)/)!; return { x: Number(start[1]), y: Number(start[2]), angle: 0 }; });
-  const [complete, setComplete] = useState(false);
-
-  function move(event: PointerEvent<SVGSVGElement>) {
-    if (done.current) return;
-    const matrix = event.currentTarget.getScreenCTM();
-    if (!matrix) return;
-    if (!bins.current.length) bins.current = samplePaths(paths.current.filter((p): p is SVGPathElement => p !== null));
-    const point = { x: event.clientX, y: event.clientY };
-    const local = new DOMPoint(point.x, point.y).matrixTransform(matrix.inverse());
-    const prev = previous.current;
-    const last = lastPointer.current;
-    const oldLocal = last ? new DOMPoint(last.x, last.y).matrixTransform(matrix.inverse()) : null;
-    lastPointer.current = point;
-    setTruck((old) => ({ x: Math.max(25, Math.min(395, local.x)), y: Math.max(25, Math.min(365, local.y)), angle: oldLocal && Math.hypot(local.x - oldLocal.x, local.y - oldLocal.y) > 1 ? Math.atan2(local.y - oldLocal.y, local.x - oldLocal.x) * 180 / Math.PI : old.angle }));
-    const accepted = markCoverage(bins.current, coverage.current, point, (p) => ({ x: matrix.a * p.x + matrix.c * p.y + matrix.e, y: matrix.b * p.x + matrix.d * p.y + matrix.f }), prev);
-    previous.current = accepted ? point : undefined;
-    if (!accepted) return;
-    setPaint([...coverage.current].map((i) => { const b = bins.current[i]; return `M${b.start.x} ${b.start.y}L${b.end.x} ${b.end.y}`; }));
-    if (tracingComplete(bins.current, coverage.current)) {
-      done.current = true; active.current = null; setComplete(true); onComplete();
-    }
+import { useRef, useState, type PointerEvent } from 'react';
+import { samplePaths, type RoadBin } from '@/lib/trace-geometry';
+import { advanceGuide, guidePoint, newGuidedTrace } from '@/lib/guided-trace';
+import { LETTERS } from '@/lib/trace-letters';
+type Letter=typeof LETTERS[number];
+export function TraceBoard({letter,onComplete}:{letter:Letter;onComplete:()=>void}){
+  const paths=useRef<(SVGPathElement|null)[]>([]),bins=useRef<RoadBin[]>([]);
+  const progress=useRef(newGuidedTrace()),pointer=useRef<number|null>(null),lift=useRef(false);
+  const [view,setView]=useState(newGuidedTrace),[paint,setPaint]=useState('');
+  const [target,setTarget]=useState(()=>{const start=letter.paths[0].match(/^M(\d+) (\d+)/)!;return {x:Number(start[1]),y:Number(start[2])};});
+  function move(event:PointerEvent<SVGSVGElement>){
+    if(lift.current||progress.current.complete)return;
+    const matrix=event.currentTarget.getScreenCTM();if(!matrix)return;
+    if(!bins.current.length)bins.current=samplePaths(paths.current.filter((p):p is SVGPathElement=>p!==null),3);
+    const before=progress.current;
+    const next=advanceGuide(bins.current,before,{x:event.clientX,y:event.clientY},p=>({x:matrix.a*p.x+matrix.c*p.y+matrix.e,y:matrix.b*p.x+matrix.d*p.y+matrix.f}));
+    progress.current=next;setView(next);if(!next.complete)setTarget(guidePoint(bins.current,next));
+    const activeStart=bins.current.findIndex(item=>item.stroke===next.stroke);
+    setPaint(bins.current.filter((b,i)=>b.stroke<next.stroke||(b.stroke===next.stroke&&i-activeStart<next.cursor)).map(b=>`M${b.start.x} ${b.start.y}L${b.end.x} ${b.end.y}`).join(' '));
+    if(next.stroke!==before.stroke)lift.current=true;
+    if(next.complete&&!before.complete)onComplete();
   }
-  function release(event: PointerEvent<SVGSVGElement>) {
-    if (active.current !== event.pointerId) return;
-    active.current = null; previous.current = undefined;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+  function release(event:PointerEvent<SVGSVGElement>){
+    if(pointer.current!==event.pointerId)return;
+    pointer.current=null;lift.current=false;progress.current={...progress.current,previous:null};
+    if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId);
   }
-  return <div className={`trace-board ${complete ? "is-complete" : ""}`} data-complete={complete}>
-    <svg viewBox="0 0 420 390" className="trace-canvas" role="img" aria-label={`Trace the letter ${letter.name}`} onPointerDown={(event) => {
-      if (event.button !== 0 || active.current !== null || done.current) return;
-      active.current = event.pointerId; previous.current = undefined; lastPointer.current = undefined;
-      event.currentTarget.setPointerCapture(event.pointerId); move(event);
-    }} onPointerMove={(event) => { if (active.current === event.pointerId) move(event); }} onPointerUp={release} onPointerCancel={release} onLostPointerCapture={() => { active.current = null; previous.current = undefined; }}>
-      <title>Drive along {letter.name}</title>
-      <desc>Drag your finger along every road. You can lift your finger and try again without losing any progress.</desc>
-      {letter.paths.map((d, i) => <g key={d}>
-        <path d={d} className="letter-road" />
-        <path ref={(node) => { paths.current[i] = node; }} d={d} className="letter-guide" data-stroke={i} />
-      </g>)}
-      <g className="letter-paint" aria-hidden="true">{complete ? letter.paths.map((d) => <path key={d} d={d} />) : <path d={paint.join(" ")} />}</g>
-      <g className="trace-truck" transform={`translate(${truck.x} ${truck.y}) rotate(${truck.angle})`} aria-hidden="true">
-        <image href="/assets/monster-truck.png" x="-37" y="-25" width="74" height="50" className="trace-truck-art" />
-      </g>
-      {complete && <g className="trace-confetti" aria-hidden="true">{Array.from({ length: 16 }, (_, i) => <rect key={i} x={30 + (i * 83) % 350} y={30 + (i % 3) * 100} width="9" height="16" rx="3" fill={["#ffb24c", "#389ff4", "#ffe43b", "#5bac79"][i % 4]} style={{ animationDelay: `${i % 4 * 60}ms` }} />)}</g>}
-      {complete && <g className="trace-sparkles" aria-hidden="true">{["✦", "★", "✦", "★"].map((star, i) => <text key={i} x={60 + i * 100} y={i % 2 ? 350 : 40}>{star}</text>)}</g>}
+  return <div className={`trace-board ${view.complete?'is-complete':''}`} data-complete={view.complete} data-active-stroke={view.stroke}>
+    <p className="stroke-instruction" role="status">{view.complete?'Good job, Collins!':`Stroke ${view.stroke+1} of ${letter.paths.length} · ${view.cursor===0?'Start at the number':'Follow the blue dot →'}`}</p>
+    <svg viewBox="0 0 420 390" className="trace-canvas" role="img" aria-label={`Trace the letter ${letter.name}`} onPointerDown={event=>{
+      if(event.button!==0||pointer.current!==null)return;pointer.current=event.pointerId;progress.current={...progress.current,previous:null};event.currentTarget.setPointerCapture(event.pointerId);move(event);
+    }} onPointerMove={event=>{if(pointer.current===event.pointerId)move(event)}} onPointerUp={release} onPointerCancel={release} onLostPointerCapture={()=>{pointer.current=null;lift.current=false;progress.current={...progress.current,previous:null}}}>
+      <title>Trace {letter.name} in order</title><desc>Start at the numbered dot. Follow the highlighted stroke in the arrow direction. Lift between strokes. Resume at the blue dot if you stop.</desc>
+      <defs><marker id={`arrow-${letter.name}`} viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="24" markerHeight="24" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#1679bf"/></marker></defs>
+      {letter.paths.map((d,i)=><g key={d}><path d={d} className="letter-road"/><path ref={node=>{paths.current[i]=node}} d={d} className={`letter-guide ${i===view.stroke?'active-stroke':''}`} data-stroke={i} /></g>)}
+      <g className="letter-paint" aria-hidden="true"><path d={view.complete?letter.paths.join(' '):paint}/></g>
+      {!view.complete&&<path d={letter.paths[view.stroke]} fill="none" stroke="none" markerEnd={`url(#arrow-${letter.name})`} aria-hidden="true"/>}
+      {!view.complete&&view.cursor>0&&<image href="/assets/monster-truck.png" x={target.x-50} y={target.y-16} width="38" height="32" aria-hidden="true"/>}
+      {!view.complete&&<g className="stroke-target" aria-hidden="true"><circle cx={target.x} cy={target.y} r="17" fill="#1679bf" stroke="#fff" strokeWidth="4"/><text x={target.x} y={target.y+6} textAnchor="middle" fill="white" fontSize="20" fontWeight="900">{view.stroke+1}</text></g>}
+      {view.complete&&<text x="210" y="375" textAnchor="middle" fontSize="30" fill="#257648">★ ★ ★</text>}
     </svg>
   </div>;
 }

@@ -60,3 +60,6 @@
   .trace-board { height: 100%; }
   .trace-canvas { height: 100%; min-height: 0; }
 }
+.stroke-instruction{margin:0;padding:8px 10px;text-align:center;font-size:clamp(16px,2vw,22px);font-weight:900;background:#e8f5fb;border-radius:18px 18px 0 0}
+.letter-guide.active-stroke{stroke:#1679bf;stroke-width:7}
+.stroke-target{pointer-events:none}

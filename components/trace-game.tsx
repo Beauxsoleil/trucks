@@ -71,7 +71,7 @@ function TraceSession({ initialProgress }: { initialProgress: Progress }) {
           {wordComplete && <Image src="/assets/monster-truck.png" alt="Truck driving across the completed word" width={1536} height={1024} sizes="80px" className="word-truck" />}
         </div> : <div className="letter-choices">{availableLetters().map((l, i) => <button type="button" key={l.name} className="letter-choice" aria-label={`Practice ${l.name}`} aria-pressed={i === letterIndex} onClick={() => selectLetter(i)}>{l.name}<span aria-hidden="true">{progress.letters.includes(l.name) ? "★" : ""}</span></button>)}</div>}
         <button type="button" className="trace-button hear-letter" onClick={() => speak(letter.speech)}>Hear {letter.name} ♪</button>
-        <p className="trace-status" role="status">{complete ? wordComplete ? `${word}! Good job, Collins!` : `${letter.name}! Good job, Collins!` : "Follow the road with your finger."}</p>
+        <p className="trace-status" role="status">{complete ? wordComplete ? `${word}! Good job, Collins!` : `${letter.name}! Good job, Collins!` : "Start at the number. Follow the arrow."}</p>
         {complete && <div className="trace-actions">
           {!wordComplete && <button type="button" className="trace-button next-road" onClick={nextRoad}>{word ? "Next letter →" : letterIndex === LETTERS.length - 1 ? "Back to A →" : `Next: ${LETTERS[letterIndex + 1].name} →`}</button>}
           <button type="button" className="trace-button" onClick={() => { if (wordComplete) setTile(0); reset(); }}>{wordComplete ? "Write it again ↻" : "Drive again ↻"}</button>

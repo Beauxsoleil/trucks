@@ -22,3 +22,7 @@ a:focus-visible { outline: 6px solid #16374a; outline-offset: 7px; }
   .home .mode-card > img, .home .mode-card > span[aria-hidden] { height: 86px; }
   .home .mode-card > span:last-child { font-size: 28px; }
 }
+
+.lab-card{background:#bda1e5}
+
+.home-lab-icon svg{width:100px;height:100px}

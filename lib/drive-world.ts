@@ -26,9 +26,9 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
   roadGeometry.setAttribute('position',new THREE.BufferAttribute(roadVertices,3).setUsage(THREE.DynamicDrawUsage));
   roadGeometry.setIndex(roadIndices);
   const road=k.mesh(roadGeometry,0xd3a673,scene);road.receiveShadow=true;road.frustumCulled=false;
-  let truck=makeTruck(k, initial.letter);scene.add(truck.root);
+  let truck=makeTruck(k, initial.word);scene.add(truck.root);
   const shadow=k.mesh(new THREE.CircleGeometry(2,24),0xb68b5c,scene,0,.07);shadow.rotation.x=-Math.PI/2;shadow.scale.y=1.3;
-  const cargo = Array.from({length:3},(_,i)=>{const group=new THREE.Group();group.position.set((i-1)*.5,2,1.6);truck.body.add(group);k.box(.43,.43,.43,0xffd768,group);k.label(initial.letter,'#ffe8a0',.32,.32,group,0,0,.22);return group;});
+  const cargo = Array.from({length:3},(_,i)=>{const group=new THREE.Group();group.position.set((i-1)*.5,2,1.6);truck.body.add(group);k.box(.43,.43,.43,0xffd768,group);k.label(initial.word[i],'#ffe8a0',.32,.32,group,0,0,.22);return group;});
   const scenery:{group:THREE.Group;tree:THREE.Group;x:number;offset:number;variation:number}[]=[];
   for(let i=0;i<14;i++){
     const group=new THREE.Group();scene.add(group);const side=i%2?-1:1,x=side*(8+(i%3)*3);
@@ -46,11 +46,11 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
   for(const x of [-4.4,4.4]){k.box(.16,.2,9,0xffedc4,bridge,x,1.2);for(const z of [-4,0,4])k.box(.24,1.25,.24,0xffedc4,bridge,x,.65,z);}
   const pickups=PICKUPS.map((position,i)=>{
     const group=new THREE.Group();scene.add(group);k.box(1.7,1.7,1.7,[0xf5b24b,0x67b9da,0xf49d83][i],group,0,1.3,0,.16);
-    k.label(initial.letter,'#fff1ce',1.3,1.3,group,0,1.3,.86);
-    const reverse=k.label(initial.letter,'#fff1ce',1.3,1.3,group,0,1.3,-.86);reverse.rotation.y=Math.PI;
+    k.label(initial.word[i],'#fff1ce',1.3,1.3,group,0,1.3,.86);
+    const reverse=k.label(initial.word[i],'#fff1ce',1.3,1.3,group,0,1.3,-.86);reverse.rotation.y=Math.PI;
     return {group,position};
   });
-  const barn=makeBarn(k, initial.letter);scene.add(barn.root);
+  const barn=makeBarn(k, initial.word);scene.add(barn.root);
   const dust=Array.from({length:8},()=>{const p=k.ball(.14,0xdfbd86,scene);p.visible=false;return p;});
   let state:DriveState={distance:initial.distance,speed:0,height:0,verticalSpeed:0};
   let phase=initial.phase,collected=initial.collected;
@@ -66,7 +66,7 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     retired.push(...assets.filter((asset):asset is THREE.Group=>asset!==null));
     if(assets[0]&&assets[1]){
       try {
-        const upgraded=makeAssetTruck(assets[0],assets[1],k,initial.letter);
+        const upgraded=makeAssetTruck(assets[0],assets[1],k,initial.word);
         cargo.forEach(item=>{upgraded.body.add(item);item.position.y=1.65;});
         retired.push(truck.root);scene.remove(truck.root);truck=upgraded;scene.add(truck.root);
         renderer.domElement.dataset.truckModel='kenney';
@@ -135,7 +135,7 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     barn.sheep.position.y=reduced.matches?0:Math.abs(Math.sin(celebration*7))*Math.max(0,1-celebration/2)*.25;
     dust.forEach((p,i)=>{p.visible=!reduced.matches&&phase==='driving'&&state.speed>2&&state.height<.3;const cycle=(time*1.8+i/8)%1;p.position.set((i%2?1:-1)*(1.2+cycle*.6),.15+cycle*.5,1.5+cycle*3);p.scale.setScalar((1-cycle)*1.6);});
     renderer.domElement.dataset.speed=state.speed.toFixed(2);renderer.domElement.dataset.height=state.height.toFixed(2);
-    renderer.domElement.dataset.distance=state.distance.toFixed(2);renderer.domElement.dataset.phase=phase;renderer.domElement.dataset.collected=String(collected);renderer.domElement.dataset.letter=initial.letter;
+    renderer.domElement.dataset.distance=state.distance.toFixed(2);renderer.domElement.dataset.phase=phase;renderer.domElement.dataset.collected=String(collected);renderer.domElement.dataset.word=initial.word;
     renderer.render(scene,camera);
   });
   return {
@@ -144,7 +144,7 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     gas(value:boolean){gas=phase==='driving'&&value;},
     jump(){if(!paused&&phase==='driving')jump=true;},
     pause(value:boolean){paused=value;gas=false;jump=false;state.speed=0;previous=0;},
-    snapshot():DeliverySnapshot{return {distance:state.distance,collected,phase,letter:initial.letter};},
+    snapshot():DeliverySnapshot{return {distance:state.distance,collected,phase,word:initial.word,traceIndex:initial.traceIndex};},
     dispose(){
       disposed=true;renderer.setAnimationLoop(null);observer.disconnect();renderer.domElement.removeEventListener('webglcontextlost',lost);
       loading.abort();clearTimeout(loadTimeout);disposeModels([scene,...retired]);

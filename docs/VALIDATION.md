@@ -82,3 +82,12 @@ Before handing the tablet to Collins, verify long-press opening and early-releas
 - Expanded word roads from four to 39, keeping prerequisite letters and existing saved progress.
 - Production build, lint, and all 29 regression tests pass. Local production Chromium completed a curved-road delivery, traced CAT through all three tiles, confirmed saved CAT after reload, found 39 word choices, checked portrait/landscape overflow and updated titles, and reported no page exceptions.
 - Physical tablet performance and actual voice output remain device checks.
+
+## Guided strokes, word missions, and Fuel Lab — September 12, 2026
+
+- Production build, lint, and all 35 regression tests pass. New tests cover ordered forward-only tracing, blocked future/reversed strokes, stationary taps and skips, interrupted resume, random three-letter word selection, particle gravity/flow, immutable boundaries, mixing, melting/evaporation/freezing/condensation, ice buoyancy, power consumption, and truck ramp physics.
+- Local production Chromium traced all 26 letters in their configured stroke order and rejected attempted later/reverse strokes on I/T/Y. Updated K and Y also completed using touch events at 844×390.
+- Completed a random BUS delivery, verified B/U/S HUD order, traced every letter at the barn, saved BUS, and confirmed replay chose another word. Existing tracing progress remains compatible.
+- Fuel Lab browser flow poured water and pretend crystals, collected 30+ power, ran the truck over its ramp to completion, reset, poured using keyboard controls, and checked pause/resume. Portrait/landscape had no horizontal page overflow; the home has three mode links. No page exceptions in these flows.
+- Inspected guided Y, the particle tank, truck track, drawn material icons, and responsive layouts. Simulation is qualitative; fuel crystals and truck power are explicitly pretend. Lab contents are session-only.
+- The school’s actual handwriting program is unknown; no exact school-curriculum match is claimed. Physical tablet performance, finger comfort, and actual speech output still require device checks.
