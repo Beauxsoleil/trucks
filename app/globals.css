@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+:root { color-scheme: light; background: #fff8e9; color: #16374a; }
+@theme inline { --font-sans: "Arial Rounded MT Bold", "Trebuchet MS", Arial, sans-serif; }
+body { margin: 0; font-family: var(--font-sans); }
+a { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+a:focus-visible { outline: 6px solid #16374a; outline-offset: 7px; }
+.mode-card { box-shadow: 0 9px 0 #16374a; transition: transform 120ms ease, box-shadow 120ms ease; }
+.mode-card:active { transform: translateY(6px); box-shadow: 0 3px 0 #16374a; }
+.smash-card { background: #ffb24c; }
+.trace-card { background: #72d2ed; }
+.number-block { display: grid; place-items: center; width: 64px; height: 64px; border: 3px solid #16374a; border-radius: 12px; }
+@media (prefers-reduced-motion: reduce) { .mode-card { transition: none; } }
