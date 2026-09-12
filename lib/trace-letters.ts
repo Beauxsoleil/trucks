@@ -28,7 +28,7 @@ const LETTER_PATHS = [
 ] as const;
 export type LetterName = typeof LETTER_PATHS[number]["name"];
 export const LETTERS = [...LETTER_PATHS].sort((a, b) => a.name.localeCompare(b.name));
-export const WORDS = ["IT", "FIT", "LET", "HIT"] as const;
+export const WORDS = ["IT", "FIT", "LET", "HIT", "AT", "IN", "ON", "UP", "GO", "ME", "WE", "CAT", "DOG", "COW", "PIG", "HEN", "SUN", "BUG", "BUS", "CAR", "VAN", "BOX", "HAT", "BAT", "CUP", "MAP", "MOM", "DAD", "BED", "RED", "BIG", "DIG", "RUN", "FUN", "MUD", "BLUE", "BARN", "JUMP", "TRUCK"] as const;
 export type Progress = { version: 1; letters: string[]; words: string[] };
 export const EMPTY_PROGRESS: Progress = { version: 1, letters: [], words: [] };
 export const STORAGE_KEY = "collins-truck-trace-v1";

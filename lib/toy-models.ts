@@ -31,12 +31,12 @@ export type ToyKit = ReturnType<typeof toyKit>;
 
 export function makeTruck(k: ToyKit, letter: string) {
   const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
-  k.box(2.2, .6, 3.8, 0xf89735, body, 0, 1.48, 0, .18);
+  k.box(2.2, .6, 3.8, 0x2785d9, body, 0, 1.48, 0, .18);
   k.box(2.12, .16, 3.6, 0x2c7dad, body, 0, 1.17);
-  k.box(1.85, .22, 1.65, 0xffb952, body, 0, 1.86, -1, .1);
+  k.box(1.85, .22, 1.65, 0x5aaff0, body, 0, 1.86, -1, .1);
   // Open cab and rounded roof make the little driver visible from either side.
-  k.box(1.87, .3, 1.65, 0xf89735, body, 0, 1.97, .45);
-  for (const x of [-.84,.84]) for (const z of [-.3,1.14]) k.box(.15,1.02,.15,0xf89735,body,x,2.51,z,.04);
+  k.box(1.87, .3, 1.65, 0x2785d9, body, 0, 1.97, .45);
+  for (const x of [-.84,.84]) for (const z of [-.3,1.14]) k.box(.15,1.02,.15,0x2785d9,body,x,2.51,z,.04);
   k.box(2.02,.23,1.85,0x2c7dad,body,0,3.03,.42,.1);
   k.box(1.55,.07,1.5,0xf7d877,body,0,3.18,.42,.03);
   k.box(1.55,.66,.07,0x5cabc0,body,0,2.57,-.37,.02);

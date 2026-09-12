@@ -73,3 +73,12 @@ Before handing the tablet to Collins, verify long-press opening and early-releas
 - Added a 12-screen-pixel stroke-cap allowance. Every stroke still requires 95% coverage; touching only endpoints cannot complete Y, and incomplete I/T bars remain incomplete.
 - Production build, lint, and all 27 regression tests pass, including offset Y traces at three scales.
 - Local production Chromium at 390×844 drove to the barn with a test-only Y selection fixture, then used touch events to trace Y 10 pixels off-center. The missing right arm correctly blocked completion; adding it completed delivery, requested Collins's praise, and saved Y. No page exceptions occurred. The production random letter pool is unchanged.
+
+## Blue truck, curved route, and more words — September 12, 2026
+
+- Changed visible home/delivery headings and document title to “Collins’”.
+- Added a shared winding centerline for road geometry, truck heading, pickups, scenery, bridge, and barn. Automatic steering and forgiving pickups remain.
+- Recolored the imported pickup paint blue while retaining windows, lights, metal, and tires; the procedural fallback body is also blue. Inspected intro and driving screenshots.
+- Expanded word roads from four to 39, keeping prerequisite letters and existing saved progress.
+- Production build, lint, and all 29 regression tests pass. Local production Chromium completed a curved-road delivery, traced CAT through all three tiles, confirmed saved CAT after reload, found 39 word choices, checked portrait/landscape overflow and updated titles, and reported no page exceptions.
+- Physical tablet performance and actual voice output remain device checks.

@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import type { ToyKit } from './toy-models';
+import { roadPosition } from './road';
 
 export function disposeModels(roots: THREE.Object3D[]) {
   const geometries=new Set<THREE.BufferGeometry>(),materials=new Set<THREE.Material>(),textures=new Set<THREE.Texture>();
@@ -25,6 +26,22 @@ export function makeAssetTruck(source:THREE.Group,tire:THREE.Group,k:ToyKit,lett
   const root=new THREE.Group(),body=new THREE.Group();root.add(body);
   const shell=source.getObjectByName('body');
   if(!shell)throw new Error('Truck body missing');
+  // Recolor only the pickup's green paint in its embedded palette. Windows,
+  // lights, metal and tires retain their original colors.
+  const maps=new Set<THREE.Texture>();
+  shell.traverse(object=>{if(object instanceof THREE.Mesh)for(const material of (Array.isArray(object.material)?object.material:[object.material]))if(material.map)maps.add(material.map);});
+  for(const map of maps){
+    const original=map.image;
+    if(!(original instanceof HTMLImageElement)&&!(original instanceof HTMLCanvasElement)&&!(typeof ImageBitmap!=='undefined'&&original instanceof ImageBitmap))continue;
+    const canvas=document.createElement('canvas');canvas.width=original.width;canvas.height=original.height;
+    const context=canvas.getContext('2d');if(!context)continue;
+    context.drawImage(original,0,0);const pixels=context.getImageData(0,0,canvas.width,canvas.height);
+    for(let i=0;i<pixels.data.length;i+=4){const r=pixels.data[i],g=pixels.data[i+1],b=pixels.data[i+2];
+      if(g>r*1.15&&g>b*1.1){pixels.data[i]=Math.round(g*.2);pixels.data[i+1]=Math.round(g*.62);pixels.data[i+2]=Math.min(255,Math.round(g*1.15));}
+    }
+    context.putImageData(pixels,0,0);map.image=canvas;map.needsUpdate=true;
+    if(typeof ImageBitmap!=='undefined'&&original instanceof ImageBitmap)original.close();
+  }
   const painted=new THREE.Group();painted.add(shell);painted.rotation.y=Math.PI;painted.scale.setScalar(1.45);painted.position.y=.7;body.add(painted);
   k.box(2.12,.14,3.5,0x2c7dad,body,0,1.05);
   k.label(letter,'#ffedac',.65,.55,body,0,1.3,2.17);
@@ -53,7 +70,8 @@ export function makeSceneryBatch(template:THREE.Group,sites:ScenerySite[],scene:
   const pose=new THREE.Object3D(),matrix=new THREE.Matrix4();
   return {update(distance:number){
     sites.forEach((site,index)=>{
-      pose.position.set(site.x,0,((distance+site.offset)%112)-94);pose.rotation.y=site.variation*1.7;pose.scale.setScalar(.85+site.variation*.08);pose.updateMatrix();
+      const z=((distance+site.offset)%112)-94,center=roadPosition(distance-z,distance);
+      pose.position.set(center.x+site.x,0,z);pose.rotation.y=site.variation*1.7;pose.scale.setScalar(.85+site.variation*.08);pose.updateMatrix();
       for(const batch of batches)batch.mesh.setMatrixAt(index,matrix.multiplyMatrices(pose.matrix,batch.local));
     });
     for(const batch of batches)batch.mesh.instanceMatrix.needsUpdate=true;

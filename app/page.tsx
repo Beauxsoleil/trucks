@@ -10,7 +10,7 @@ export default function Home() {
         <header className="flex flex-col items-center justify-center gap-3 rounded-[2rem] border-4 bg-[#fff8e9] px-5 py-4 sm:flex-row sm:gap-6">
           <ParentMode />
           <h1 className="text-center font-black tracking-tight sm:text-left">
-            <span className="block text-[clamp(1.75rem,3vw,2.5rem)]">Collins&apos;s</span>
+            <span className="block text-[clamp(1.75rem,3vw,2.5rem)]">Collins’</span>
             <span className="block text-[clamp(2rem,4.5vw,3.75rem)] leading-[1.05]">Monster Truck<br />Adventures</span>
           </h1>
         </header>

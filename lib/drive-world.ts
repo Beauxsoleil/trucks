@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { roadPosition, roadHeading } from "./road";
 import { stepDrive, type DriveState } from "./drive-physics";
 import { loadModel, makeAssetTruck, makeSceneryBatch, disposeModels } from "./model-assets";
 import { toyKit, makeTruck, makeBarn } from "./toy-models";
@@ -19,7 +20,12 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
   Object.assign(sun.shadow.camera,{left:-16,right:16,top:18,bottom:-18,near:1,far:65});sun.shadow.normalBias=.04;scene.add(sun);
   const k = toyKit();
   k.box(220,.2,220,0x99c781,scene,0,-.2,-40,0).receiveShadow=true;
-  k.box(9,.12,180,0xd3a673,scene,0,-.02,-40,0).receiveShadow=true;
+  const roadGeometry=new THREE.BufferGeometry();
+  const roadVertices=new Float32Array(121*2*3),roadIndices:number[]=[];
+  for(let i=0;i<120;i++){const a=i*2;roadIndices.push(a,a+1,a+2,a+1,a+3,a+2);}
+  roadGeometry.setAttribute('position',new THREE.BufferAttribute(roadVertices,3).setUsage(THREE.DynamicDrawUsage));
+  roadGeometry.setIndex(roadIndices);
+  const road=k.mesh(roadGeometry,0xd3a673,scene);road.receiveShadow=true;road.frustumCulled=false;
   let truck=makeTruck(k, initial.letter);scene.add(truck.root);
   const shadow=k.mesh(new THREE.CircleGeometry(2,24),0xb68b5c,scene,0,.07);shadow.rotation.x=-Math.PI/2;shadow.scale.y=1.3;
   const cargo = Array.from({length:3},(_,i)=>{const group=new THREE.Group();group.position.set((i-1)*.5,2,1.6);truck.body.add(group);k.box(.43,.43,.43,0xffd768,group);k.label(initial.letter,'#ffe8a0',.32,.32,group,0,0,.22);return group;});
@@ -99,17 +105,28 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     jump=false;landing=Math.max(0,landing-dt*.8);
     const bridgeHeight=phase==='driving'?Math.max(0,1-Math.abs(state.distance-110)/5)*.26:0;
     truck.root.position.y=state.height+bridgeHeight;
+    truck.root.rotation.y=roadHeading(state.distance);
+    for(let i=0;i<=120;i++){
+      const z=20-i,center=roadPosition(state.distance-z,state.distance);
+      for(let side=0;side<2;side++){const n=(i*2+side)*3;roadVertices[n]=center.x+(side?4.5:-4.5);roadVertices[n+1]=.04;roadVertices[n+2]=z;}
+    }
+    roadGeometry.attributes.position.needsUpdate=true;roadGeometry.computeVertexNormals();
     truck.body.position.y=reduced.matches?0:-landing+(state.speed>0?Math.sin(state.distance*2)*.025:0);
     truck.body.rotation.x=reduced.matches?0:-state.verticalSpeed*.012;
     for(const spring of truck.springs)spring.scale.y=1+(reduced.matches?0:truck.body.position.y);
     for(const wheel of truck.wheels)wheel.rotation.x=-state.distance/.8;
     shadow.scale.set(1-state.height*.1,1.3-state.height*.1,1);
-    for(const item of scenery)item.group.position.z=((state.distance+item.offset)%112)-94;
+    for(const item of scenery){
+      const z=((state.distance+item.offset)%112)-94,position=state.distance-z,center=roadPosition(position,state.distance);
+      item.group.position.set(center.x,0,z);item.group.rotation.y=roadHeading(position);
+    }
     for(const forest of forests)forest.update(state.distance);
-    bridge.position.z=state.distance-110;
-    pickups.forEach((item,i)=>{item.group.position.z=state.distance-item.position;item.group.visible=i>=collected;});
+    const bridgeCenter=roadPosition(110,state.distance);
+    bridge.position.set(bridgeCenter.x,0,bridgeCenter.z);bridge.rotation.y=roadHeading(110);
+    pickups.forEach((item,i)=>{const center=roadPosition(item.position,state.distance);item.group.position.set(center.x,0,center.z);item.group.rotation.y=roadHeading(item.position);item.group.visible=i>=collected;});
     cargo.forEach((item,i)=>item.visible=i<collected&&phase!=='delivered');
-    barn.root.position.z=state.distance-BARN_DISTANCE;
+    const barnCenter=roadPosition(BARN_DISTANCE,state.distance);
+    barn.root.position.set(barnCenter.x,0,barnCenter.z);barn.root.rotation.y=roadHeading(BARN_DISTANCE);
     if(phase==='delivered')celebration=Math.min(2,celebration+dt);
     const opened=reduced.matches&&phase==='delivered'?1:Math.min(1,celebration);
     barn.doors[0].rotation.y=-opened*1.8;barn.doors[1].rotation.y=opened*1.8;

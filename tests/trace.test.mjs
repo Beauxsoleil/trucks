@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {samplePaths, coveredFraction, markCoverage, tracingComplete} from '../lib/trace-geometry.ts';
-import {LETTERS, parseProgress, availableLetters, availableWords} from '../lib/trace-letters.ts';
+import {LETTERS, WORDS, parseProgress, availableLetters, availableWords} from '../lib/trace-letters.ts';
 const line=(x,y,length)=>({getTotalLength:()=>length,getPointAtLength:d=>({x:x+d,y})});
 const identity=p=>p;
 
@@ -99,4 +99,12 @@ test('touching only Y endpoints and junction cannot complete the letter',()=>{
  for(const point of [left,middle,right,bottom])markCoverage(bins,covered,point,identity);
  assert.equal(tracingComplete(bins,covered),false);
  assert.ok(coveredFraction(bins,covered)<.3);
+});
+
+test('expanded word list uses supported letters and preserves word prerequisites',()=>{
+ assert.equal(new Set(WORDS).size,39);
+ for(const word of WORDS)for(const letter of word)assert.ok(LETTERS.some(item=>item.name===letter));
+ const progress={version:1,letters:['C','A'],words:[]};assert.ok(!availableWords(progress).includes('CAT'));
+ progress.letters.push('T');assert.ok(availableWords(progress).includes('CAT'));
+ assert.deepEqual(parseProgress(JSON.stringify({version:1,letters:['C','A','T'],words:['CAT']})).words,['CAT']);
 });

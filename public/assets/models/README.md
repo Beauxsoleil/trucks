@@ -25,3 +25,5 @@ python scripts/prepare-models.py /path/to/car-kit.zip /path/to/nature-kit.zip
 - `tree_pineRoundA.glb`: `6075e806bd1e590c3e23375e09a79afb1bfda1c51c25f2beb12b386071f338a6` (14488 bytes)
 - `truck.glb`: `ab3a14621adaeac01e8d78877b241fb0a6c6a1a4d333c9cf311a33cff71366bc` (188744 bytes)
 - `wheel-tractor-dark-back.glb`: `687d897c06072b05d0d094a020f455c19524c911c36ab7336b29d5bbdf055961` (49068 bytes)
+
+The game recolors the pickup’s green palette entries to blue at runtime; windows, lights, metal, and tires retain their source colors. The GLB files and hashes above are unchanged.

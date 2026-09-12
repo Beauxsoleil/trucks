@@ -68,7 +68,7 @@ export default function SmashGame(){
   },[attempt]);
   return <main className="drive-game" data-mission={phase}>
     <div className="drive-world" ref={host}/>
-    <header className="drive-header"><Link href="/" className="drive-home">⌂ Home</Link><h1>Collins&apos;s Letter Delivery</h1></header>
+    <header className="drive-header"><Link href="/" className="drive-home">⌂ Home</Link><h1>Collins’ Letter Delivery</h1></header>
     {(phase==='driving'||phase==='intro')&&<div className="delivery-hud">
       <p className="drive-message" role="status">{collected===3?'To the barn! →':`Find three ${letter} blocks`}</p>
       <div className="delivery-slots" aria-label={`${collected} of 3 letter ${letter} blocks collected`}>{[0,1,2].map(i=><span key={i} className={i<collected?'collected':''} aria-hidden="true">{letter}{i<collected&&<small>✓</small>}</span>)}</div>
