@@ -5,9 +5,10 @@
 .parent-panel::backdrop { background: #16374acc; }
 .parent-panel h2 { font-size: 36px; line-height: 1.1; font-weight: 900; }
 .parent-panel p { margin-top: 18px; }
-.parent-progress { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.parent-progress { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 20px; }
 .parent-progress > div { padding: 16px; background: #c9eef3; border-radius: 18px; }
 .parent-progress dt { font-size: 21px; font-weight: 700; }
 .parent-progress dd { font-size: 40px; font-weight: 900; }
 .parent-close { display: block; width: 100%; min-height: 64px; margin-top: 24px; border: 3px solid #16374a; border-radius: 18px; background: #ffe778; padding: 12px 18px; font-size: 26px; font-weight: 900; cursor: pointer; touch-action: manipulation; }
 .parent-close:focus-visible { outline: 5px solid #16374a; outline-offset: 4px; }
+@media (max-width: 480px) { .parent-progress { grid-template-columns: 1fr; } }

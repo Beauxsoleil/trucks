@@ -27,7 +27,15 @@ Speech requests were intercepted during browser tests. Tablet voice pronunciatio
 
 - Production build and ESLint passed after adding the parent panel and landscape styles.
 - Four additional hold-controller regression tests check the exact three-second threshold, normal taps, movement cancellation, repeated key presses, and cancellation before delayed opening. The five tracing/unlock tests remain in the suite.
-- Landscape CSS preserves at least 200px home choices and gives the tracing road a fixed visible area with independently scrollable controls. Final visual verification of these stage-5 changes is pending: the available cloud browser rejected the local preview URL with `ERR_BLOCKED_BY_CLIENT`.
+- Landscape CSS preserves at least 200px home choices and gives the tracing road a fixed visible area with independently scrollable controls. The original cloud-browser check was blocked; the local Chromium verification below completes this layout check.
 - Vercel deployment and production-URL verification are pending the Vercel account connection. No live deployment is claimed.
 
 Before handing the tablet to Collins, verify long-press opening and early-release cancellation, Escape/Back to game, comfortable audio, tracing feel, and saved progress on the final production origin.
+
+## Continuation check — September 12, 2026
+
+- Re-ran the production build, ESLint, and all nine regression tests successfully.
+- Local Chromium loaded home and tracing at 1024×768, 844×390, and 390×844 without horizontal page overflow or JavaScript exceptions. Home choices measured 260px high on the larger/portrait views and 200px high on short landscape. The tracing board remained within the landscape viewport. Inspected the short-landscape screenshot.
+- A normal logo tap stayed closed after three seconds; holding Space opened the parent panel, and Escape closed it.
+- Visual inspection found the parent progress cards clipping on a narrow portrait screen. Changed them to stack below 481px and allowed desktop grid columns to shrink. Rebuilt production and checked the panel at 320×568, 390×844, and 844×390: no horizontal panel overflow; Back to game closed it at every size. Inspected the corrected portrait screenshot.
+- Vercel returned no accessible teams and failed to list projects. A deployed production URL remains unverified. Browser checks used a local production server; physical tablet touch and actual audio remain device checks.
