@@ -9,7 +9,7 @@ A colorful educational monster-truck game for Collins, built in stages in the ex
 - `/smash` and `/trace` route scaffolds with a large return-home link.
 - System fonts; no accounts, ads, analytics, database, or personal-data collection code.
 
-Smash Mode is playable. Trace & Drive remains a scaffold for stage 4; parent controls and deployment are planned for stage 5. This app has not yet been deployed to Vercel.
+Smash Mode is playable. Trace & Drive is playable; parent controls and deployment are planned for stage 5. This app has not yet been deployed to Vercel.
 
 ## Run locally
 
@@ -40,7 +40,7 @@ app/
   globals.css     Tailwind and shared visual styles
   page.tsx        Two-choice home screen
   smash/page.tsx  Smash Mode game entry
-  trace/page.tsx  Trace & Drive scaffold
+  trace/page.tsx  Trace & Drive game entry
 components/
   mode-shell.tsx  Shared temporary mode screen
 public/assets/    Truck, track, and wooden-block PNG assets
@@ -64,3 +64,23 @@ Tap anywhere in the play screen (or press Enter/Space on the large play button).
 - Reduced-motion preferences remove hopping, travel, scattering, and confetti while retaining the count and reset.
 
 Real tablet validation is still needed for touch feel and the device's available speech voice.
+
+## Stage 4: Trace & Drive
+
+Trace each dashed SVG road with a finger, mouse, or stylus. The truck follows the pointer; covered road turns green. Drifting off the road has no penalty. Finger lifts keep the coverage already earned.
+
+- Letters open in order **L, T, I, F, E, H**, followed by **C, O, U** only after the first six are completed. Previously opened letters can be replayed.
+- Independent SVG strokes use `getTotalLength()` / `getPointAtLength()` and length-weighted coverage bins. Completion triggers once at 85% coverage.
+- The 35px tolerance is measured in screen pixels using the SVG screen transform. Repeated touches do not accumulate extra credit, and large pointer jumps do not fill skipped road.
+- Completion fills the letter, hops the truck, shows confetti/stars, and requests the letter name, approximate sound, and an example word through browser speech synthesis. **Hear** repeats the audio on demand. Actual phonetic pronunciation varies by installed voice; this is not a recorded phonics voice pack.
+- Word roads **IT, FIT, LET, HIT** appear only when their letters are learned (at least three letters completed). Trace each tile in sequence. The finished word gets a truck drive and letter-by-letter/whole-word read-aloud.
+- Versioned progress uses `localStorage` key `collins-truck-trace-v1`. Unlocks are derived from completed letters/words. It stays on this browser/device; clearing site data clears progress. If storage is blocked or full, play and unlocks continue in memory for the current visit.
+- No database, accounts, analytics, or remote progress service.
+
+Geometry and unlock regression checks (Node.js 22.18+ or Node.js 24):
+
+```sh
+node --test tests/trace.test.mjs
+```
+
+Trace implementation: `components/trace-game.tsx`, `components/trace-board.tsx`, `lib/trace-letters.ts`, and `lib/trace-geometry.ts`. Browser validation details are in `docs/VALIDATION.md`.
