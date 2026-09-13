@@ -17,7 +17,7 @@ export function advanceGuide(bins:RoadBin[],state:GuidedState,point:Point,transf
   if(state.complete)return state;
   const path=bins.filter(b=>b.stroke===state.stroke);if(!path.length)return state;
   const cursor=Math.min(state.cursor,path.length-1),anchor=transform(path[cursor].start);
-  if(!state.previous)return distance(point,anchor)<=24?{...state,previous:point}:state;
+  if(!state.previous)return distance(point,anchor)<=40?{...state,previous:point}:state;
   const movement=distance(point,state.previous);
   if(movement<.5)return state;
   if(movement>70)return {...state,previous:null};
@@ -27,13 +27,16 @@ export function advanceGuide(bins:RoadBin[],state:GuidedState,point:Point,transf
     if(arc>Math.min(70,movement*1.5+4))break;
     const d=distance(point,transform(path[i].end));if(d<best){best=d;next=i;}
   }
-  if(best>24)return {...state,previous:null};
+  if(best>40)return {...state,previous:null};
   // Advancing requires moving forward towards the next part of the path.
   const target=transform(path[next].end),start=transform(path[next].start);
   if((point.x-state.previous.x)*(target.x-start.x)+(point.y-state.previous.y)*(target.y-start.y)<=0)return {...state,previous:point};
   if(distance(point,target)>=distance(state.previous,target))return {...state,previous:point};
   const end=transform(path[path.length-1].end);
-  if(next===path.length-1&&distance(point,end)<=12){
+  // Forgive an imprecise finish only after following at least 90% of this
+  // stroke, with at most 10 screen pixels left. Other strokes still count.
+  const remaining=path.slice(next+1).reduce((sum,b)=>sum+distance(transform(b.start),transform(b.end)),0);
+  if(next>=Math.floor((path.length-1)*.9)&&remaining<=10&&distance(point,end)<=30){
     const stroke=state.stroke+1;
     return {stroke,cursor:0,previous:null,complete:!bins.some(b=>b.stroke===stroke)};
   }

@@ -1,5 +1,11 @@
 # Smoother tracing and truck physics
 
+## Forgiving tracing follow-up
+
+The later child-play feedback supersedes the strict lift requirement below. Active-path and resume tolerance is now 40 screen pixels instead of 24. An endpoint may finish within 30 pixels after at least 90% of its stroke has been followed and no more than 10 pixels of path remain. Stroke order and rejection of large shortcuts remain. Finger lifts within a stroke preserve progress, and lifting between strokes is optional: moving to the new numbered start arms the next step. Batched input still stops at each boundary.
+
+Verification: all 42 Node tests, lint and production build passed. Phone-size browser checks cover I, T, Y, C, O and S both with normal lifts and while keeping the pointer held between steps; short offset swipes and near-end finishes are covered by the new regression test.
+
 ## Tracing
 
 - Read coalesced hardware pointer samples, with normal pointer events as a fallback. Process samples in order and stop at every stroke boundary; never invent shortcut points across curves.
