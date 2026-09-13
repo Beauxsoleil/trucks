@@ -7,6 +7,7 @@ import { createParentHold } from "@/lib/parent-hold";
 import "./parent-mode.css";
 
 export default function ParentMode() {
+  const [parentPage,setParentPage]=useState(0);
   const [open, setOpen] = useState(false);
   const [progress, setProgress] = useState<Progress>(EMPTY_PROGRESS);
   const [storageAvailable, setStorageAvailable] = useState(true);
@@ -48,16 +49,11 @@ export default function ParentMode() {
       <Image src="/assets/monster-truck.png" alt="A friendly orange-and-blue monster truck" width={1536} height={1024} sizes="(min-width: 640px) 220px, 160px" preload draggable={false} className="h-auto w-40 sm:w-[220px]" />
     </button>
     <dialog ref={dialog} className="parent-panel" aria-labelledby="parent-title" onCancel={() => setOpen(false)} onClose={() => setOpen(false)}>
-      <h2 id="parent-title">Parent mode</h2>
-      <p>A little progress, one happy drive at a time.</p>
-      {storageAvailable ? <dl className="parent-progress">
-        <div><dt>Letters completed</dt><dd>{progress.letters.length} / {LETTERS.length}</dd></div>
-        <div><dt>Words completed</dt><dd>{progress.words.length} / {WORDS.length}</dd></div>
-      </dl> : <p>Saved progress isn’t available in this browser.</p>}
-      {progress.letters.length > 0 && <p><strong>Letter roads:</strong> {progress.letters.join(", ")}</p>}
-      {progress.words.length > 0 && <p><strong>Word roads:</strong> {progress.words.join(", ")}</p>}
-      <p>Use the tablet sideways, keep the volume comfortable, and let Collins go at his own pace. Progress saves on this browser when storage is available.</p>
-      <button type="button" className="parent-close" onClick={() => setOpen(false)}>Back to game</button>
+      <header><h2 id="parent-title">Parent mode</h2><button className="parent-close" onClick={()=>setOpen(false)}>Back to game</button></header>
+      <section className="parent-page">
+      {parentPage===0?(storageAvailable?<dl className="parent-progress"><div><dt>Letters</dt><dd>{progress.letters.length} / {LETTERS.length}</dd></div><div><dt>Words</dt><dd>{progress.words.length} / {WORDS.length}</dd></div></dl>:<p>Saved progress isn’t available in this browser.</p>):parentPage===Math.ceil((progress.letters.length+progress.words.length)/6)+1?<p>Use the tablet sideways, keep the volume comfortable, and let Collins go at his own pace. Progress saves on this browser when storage is available.</p>:<><h3>Completed roads</h3><p>{[...progress.letters,...progress.words].slice((parentPage-1)*6,parentPage*6).join(' · ')||'No completed roads yet.'}</p></>}
+      </section>
+      <nav className="parent-pages"><button disabled={parentPage===0} onClick={()=>setParentPage(parentPage-1)}>← Back</button><span>{parentPage+1}</span><button disabled={parentPage>=Math.ceil((progress.letters.length+progress.words.length)/6)+1} onClick={()=>setParentPage(parentPage+1)}>More →</button></nav>
     </dialog>
   </>;
 }

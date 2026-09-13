@@ -91,3 +91,11 @@ Before handing the tablet to Collins, verify long-press opening and early-releas
 - Fuel Lab browser flow poured water and pretend crystals, collected 30+ power, ran the truck over its ramp to completion, reset, poured using keyboard controls, and checked pause/resume. Portrait/landscape had no horizontal page overflow; the home has three mode links. No page exceptions in these flows.
 - Inspected guided Y, the particle tank, truck track, drawn material icons, and responsive layouts. Simulation is qualitative; fuel crystals and truck power are explicitly pretend. Lab contents are session-only.
 - The school’s actual handwriting program is unknown; no exact school-curriculum match is claimed. Physical tablet performance, finger comfort, and actual speech output still require device checks.
+
+## Button navigation without scrolling — September 13, 2026
+
+- Home now pages through one large mode card at a time. Tracing uses a four-choice paged picker, preserving the active board when opening/closing it. Parent progress and tips use pages.
+- Fuel Lab keeps its tank and truck on a fixed play screen with Pour/Test controls, and moves material selection, tools, and experiment goals into separate dialogs. The canvas retains its aspect ratio and input coordinates are based on its rendered bounds. Fixed a short-landscape grid sizing issue found during visual inspection.
+- Native dialogs trap focus, support Escape, and restore focus. Root pages and panels do not scroll; large control targets are retained.
+- Build and lint pass. Local production Chromium checked every visible navigation control and zero page overflow at 390×844, 375×667, 844×390, and 1024×768; wheel gestures did not move the page. Reached Y and TRUCK through pagers, ran the fuel reaction and truck test without scrolling, and completed guided A tracing with all completion controls in view.
+- Checked parent navigation and the 3D intro at portrait/short-landscape sizes. Inspected home and Fuel Lab screenshots. Native device touch/zoom behavior remains a device check.

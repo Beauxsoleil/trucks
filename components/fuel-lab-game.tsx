@@ -4,11 +4,14 @@ import {useEffect,useRef,useState,type PointerEvent,type KeyboardEvent} from 're
 import {FuelLab,MATERIAL,LAB_COLORS,newLabTruck,stepLabTruck,type Material,type Temperature} from '@/lib/fuel-lab';
 import './fuel-lab-game.css';
 import {LabIcon} from './lab-icon';
+import {ChoiceDialog} from './choice-dialog';
+import {ChoicePager} from './choice-pager';
 const TOOLS=[{id:MATERIAL.water,name:'Water',icon:'💧'},{id:MATERIAL.sand,name:'Sand',icon:'⏳'},{id:MATERIAL.ice,name:'Ice',icon:'🧊'},{id:MATERIAL.crystal,name:'Fuel crystals',icon:'💎'},{id:MATERIAL.wall,name:'Wall',icon:'🧱'},{id:MATERIAL.empty,name:'Erase',icon:'⌫'}];
 const EXPERIMENTS=[{id:'power',name:'Power the truck',hint:'Pour water, then pretend fuel crystals. Catch the rising bubbles!'},{id:'mud',name:'Make mud',hint:'Pour sand and water. What changes?'},{id:'melt',name:'Melt ice',hint:'Add ice. Warm the bottom pad and watch it melt.'},{id:'steam',name:'Make vapor',hint:'Add water. Warm the bottom pad. Watch vapor rise!'},{id:'freeze',name:'Freeze water',hint:'Pour water. Cool the bottom pad to make ice.'}];
 const FOUND:Record<string,string>={fizz:'The pretend crystals fizz in water!',power:'Bubbles filled the truck battery!',mud:'Sand and water made mud!',melt:'Warmth melted ice into water!',steam:'Warmth turned water into vapor!',freeze:'Cooling turned water into ice!',condense:'Cooling turned vapor into water!'};
 function speak(text:string){try{const voice=new SpeechSynthesisUtterance(text);voice.rate=.85;speechSynthesis.cancel();speechSynthesis.speak(voice);}catch{/* Visual directions remain available. */}}
 export default function FuelLabGame(){
+ const [panel,setPanel]=useState<'materials'|'tools'|'goals'|null>(null);
  const canvas=useRef<HTMLCanvasElement>(null),lab=useRef<FuelLab|null>(null),truck=useRef(newLabTruck());
  const tool=useRef<Material>(MATERIAL.water),held=useRef<number|null>(null),pausedRef=useRef(false),cursor=useRef({x:64,y:9});
  const [selected,setSelected]=useState<Material>(MATERIAL.water),[energy,setEnergy]=useState(0),[paused,setPaused]=useState(false),[temperature,setTemperature]=useState<Temperature>('off');
@@ -19,6 +22,11 @@ export default function FuelLabGame(){
   const pixelContext=pixels.getContext('2d')!;const frame=pixelContext.createImageData(world.width,world.height);
   const colors=LAB_COLORS.map(color=>[parseInt(color.slice(1,3),16),parseInt(color.slice(3,5),16),parseInt(color.slice(5,7),16)]);
   let raf=0,last=0,accumulator=0,ui=0,found=0,hidden=document.hidden;
+  const fit=()=>{const parent=element.parentElement!;const label=parent.querySelector('.lab-tank-label') as HTMLElement;const note=parent.querySelector('.lab-observation') as HTMLElement;
+   const available=Math.max(1,parent.clientHeight-label.offsetHeight-note.offsetHeight);
+   const fitted=Math.min(parent.clientWidth,available*768/590);element.style.width=`${Math.max(1,fitted)}px`;element.style.height=`${Math.max(1,fitted*590/768)}px`;
+  };
+  const sizeObserver=new ResizeObserver(fit);sizeObserver.observe(element.parentElement!);sizeObserver.observe(element.parentElement!.querySelector('.lab-observation')!);fit();
   const visibility=()=>{hidden=document.hidden;last=0;held.current=null;};const blur=()=>{hidden=true;last=0;held.current=null;};const focus=()=>{hidden=document.hidden;last=0;};
   function draw(){
    for(let i=0;i<world.cells.length;i++){const c=colors[world.cells[i]];frame.data[i*4]=c[0];frame.data[i*4+1]=c[1];frame.data[i*4+2]=c[2];frame.data[i*4+3]=255;}
@@ -43,7 +51,7 @@ export default function FuelLabGame(){
    draw();raf=requestAnimationFrame(animate);
   }
   raf=requestAnimationFrame(animate);document.addEventListener('visibilitychange',visibility);window.addEventListener('blur',blur);window.addEventListener('focus',focus);
-  return()=>{cancelAnimationFrame(raf);lab.current=null;document.removeEventListener('visibilitychange',visibility);window.removeEventListener('blur',blur);window.removeEventListener('focus',focus);try{speechSynthesis.cancel();}catch{}};
+  return()=>{sizeObserver.disconnect();cancelAnimationFrame(raf);lab.current=null;document.removeEventListener('visibilitychange',visibility);window.removeEventListener('blur',blur);window.removeEventListener('focus',focus);try{speechSynthesis.cancel();}catch{}};
  },[]);
  function paint(event:PointerEvent<HTMLCanvasElement>){const rect=event.currentTarget.getBoundingClientRect(),x=(event.clientX-rect.left)/rect.width*128,y=(event.clientY-rect.top)/rect.height*590/440*88;if(y>=88)return;cursor.current={x,y};lab.current?.paint(x,y,tool.current,3);}
  function release(event:PointerEvent<HTMLCanvasElement>){if(held.current===event.pointerId)held.current=null;if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId);}
@@ -51,17 +59,16 @@ export default function FuelLabGame(){
  function reset(){lab.current?.reset();truck.current=newLabTruck();setEnergy(0);setRunning(false);setFinished(false);setTemperature('off');setDiscoveries([]);setMessage('A fresh tank. What will you try?');}
  const experiment=EXPERIMENTS.find(e=>e.id===goal)!;
  return <main className="fuel-lab"><header><Link href="/">⌂ Home</Link><div><p>Collins’ little science garage</p><h1>Monster Truck Fuel Lab</h1></div><button onClick={()=>speak(experiment.hint)}>Hear ↗</button></header>
-  <section className="lab-mission"><div><strong>{experiment.name} {(goal==='power'?finished:discoveries.includes(goal))?'★':''}</strong><p>{experiment.hint}</p></div><select aria-label="Choose experiment" value={goal} onChange={e=>{setGoal(e.target.value);setFinished(false)}}>{EXPERIMENTS.map(e=><option key={e.id} value={e.id}>{e.name}</option>)}</select></section>
-  <div className="lab-layout"><section className="lab-workbench" aria-label="Experiment workbench"><div className="lab-tank-label">↑ Bubble collector · pretend truck power</div><canvas ref={canvas} width="768" height="590" tabIndex={0} aria-label="Experiment tank. Tap or drag to add the selected material. Arrow keys move the brush; Enter pours." onKeyDown={keyboard} onPointerDown={e=>{if(e.button!==0||held.current!==null)return;held.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);paint(e)}} onPointerMove={e=>{if(held.current===e.pointerId)paint(e)}} onPointerUp={release} onPointerCancel={release} onLostPointerCapture={()=>{held.current=null}}/>
+  <div className="lab-layout"><section className="lab-workbench" aria-label="Experiment workbench"><div className="lab-tank-label">↑ {experiment.name} · {paused?'Paused':'Bubble collector'}</div><canvas ref={canvas} width="768" height="590" tabIndex={0} aria-label="Experiment tank. Tap or drag to add the selected material. Arrow keys move the brush; Enter pours." onKeyDown={keyboard} onPointerDown={e=>{if(e.button!==0||held.current!==null)return;held.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);paint(e)}} onPointerMove={e=>{if(held.current===e.pointerId)paint(e)}} onPointerUp={release} onPointerCancel={release} onLostPointerCapture={()=>{held.current=null}}/>
    <p role="status" className="lab-observation">{message}</p></section>
-   <aside className="lab-controls"><h2>Pick & pour</h2><div className="lab-materials">{TOOLS.map(item=><button key={item.id} aria-pressed={selected===item.id} onClick={()=>{tool.current=item.id;setSelected(item.id)}}><LabIcon kind={item.id}/>{item.name}</button>)}</div>
-    <button className="lab-pour" onClick={()=>lab.current?.paint(64,9,tool.current,5)}>Pour {TOOLS.find(t=>t.id===selected)!.name} ↓</button>
-    <div className="lab-temperature" aria-label="Bottom pad temperature">{(['off','warm','cool'] as const).map(t=><button key={t} aria-pressed={temperature===t} onClick={()=>{if(lab.current)lab.current.temperature=t;setTemperature(t)}}>{t==='off'?'Pad off':t==='warm'?'Warm ☀':'Cool ❄'}</button>)}</div>
-    <label htmlFor="lab-power">Truck power · {energy}%</label><progress id="lab-power" value={energy} max={100}/>
-    <button className="lab-test" disabled={energy<30||running||paused} onClick={()=>{if(lab.current?.usePower()){truck.current={...newLabTruck(),running:true};setEnergy(lab.current.energy);setRunning(true);setFinished(false);canvas.current?.scrollIntoView({block:'center',behavior:'instant'})}}}>{running?'Truck test running…':finished?'Test again! →':'Test truck! →'}</button>
-    {energy<30&&!running&&<p className="lab-help">Collect 30 power to test the truck.</p>}
-    <div className="lab-actions"><button onClick={()=>{pausedRef.current=!paused;setPaused(!paused)}}>{paused?'Resume ▶':'Pause Ⅱ'}</button><button onClick={reset}>Empty tank ↻</button></div>
-    <p className="lab-note">Fuel crystals and truck power are pretend. Explore gravity, flow, warming, and cooling.</p>
-   </aside></div>
+   </div>
+   <div className="lab-dock"><div className="lab-primary"><button className="lab-pour" onClick={()=>lab.current?.paint(64,9,tool.current,5)}>Pour {TOOLS.find(t=>t.id===selected)!.name} ↓</button><button className="lab-test" disabled={energy<30||running||paused} onClick={()=>{if(lab.current?.usePower()){truck.current={...newLabTruck(),running:true};setEnergy(lab.current.energy);setRunning(true);setFinished(false)}}}>{running?'Testing…':`Test truck · ${energy}% →`}</button></div>
+    <nav aria-label="Lab panels"><button onClick={()=>setPanel('materials')}>Materials</button><button onClick={()=>setPanel('tools')}>Tools</button><button onClick={()=>setPanel('goals')}>Goals</button></nav>
+   </div>
+   {panel&&<ChoiceDialog label={`${panel} panel`} onClose={()=>setPanel(null)}><header><h2>{panel==='materials'?'Pick a material':panel==='tools'?'Lab tools':'Pick an experiment'}</h2><button autoFocus onClick={()=>setPanel(null)}>Done ✓</button></header>
+    {panel==='materials'&&<ChoicePager items={TOOLS.map(t=>({id:String(t.id),label:t.name,icon:<LabIcon kind={t.id}/>}))} onChoose={id=>{const value=Number(id) as Material;tool.current=value;setSelected(value);setPanel(null)}}/>}
+    {panel==='goals'&&<ChoicePager items={EXPERIMENTS.map(e=>({id:e.id,label:e.name+((e.id==='power'?finished:discoveries.includes(e.id))?' ★':'')}))} onChoose={id=>{setGoal(id);setMessage(EXPERIMENTS.find(e=>e.id===id)!.hint);setPanel(null)}}/>}
+    {panel==='tools'&&<><div className="lab-temperature" aria-label="Bottom pad temperature">{(['off','warm','cool'] as const).map(t=><button key={t} aria-pressed={temperature===t} onClick={()=>{if(lab.current)lab.current.temperature=t;setTemperature(t);setPanel(null)}}>{t==='off'?'Pad off':t==='warm'?'Warm ☀':'Cool ❄'}</button>)}</div><div className="lab-actions"><button onClick={()=>{pausedRef.current=!paused;setPaused(!paused);setPanel(null)}}>{paused?'Resume ▶':'Pause Ⅱ'}</button><button onClick={()=>{reset();setPanel(null)}}>Empty tank ↻</button></div><p className="lab-note">Fuel crystals are pretend. Collect 30 power to test the truck.</p></>}
+   </ChoiceDialog>}
  </main>;
 }

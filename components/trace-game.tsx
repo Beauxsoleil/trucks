@@ -1,6 +1,7 @@
 "use client";
 
-import Image from "next/image";
+import {ChoiceDialog} from "./choice-dialog";
+import {ChoicePager} from "./choice-pager";
 import Link from "next/link";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { TraceBoard } from "@/components/trace-board";
@@ -28,6 +29,7 @@ export default function TraceGame() {
 }
 
 function TraceSession({ initialProgress }: { initialProgress: Progress }) {
+  const [choosing,setChoosing]=useState(false),[choices,setChoices]=useState<'letters'|'words'>('letters');
   const [progress, setProgress] = useState(initialProgress);
   const [letterIndex, setLetterIndex] = useState(() => Math.max(0, LETTERS.findIndex((l) => !initialProgress.letters.includes(l.name))));
   const [word, setWord] = useState<string | null>(null);
@@ -61,25 +63,17 @@ function TraceSession({ initialProgress }: { initialProgress: Progress }) {
     else selectLetter((letterIndex + 1) % LETTERS.length);
   }
 
-  return <main className="trace-game">
-    <header className="trace-header"><Link href="/" className="trace-button home-link">⌂ Home</Link><h1>Trace &amp; Drive</h1></header>
-    <div className="trace-layout">
-      <section className="trace-controls" aria-label="Choose a letter road">
-        <h2>{word ? `Let’s write ${word}!` : `Drive along ${letter.name}`}</h2>
-        {word ? <div className={`word-road ${wordComplete ? "word-finished" : ""}`} aria-label={`Word ${word}`}>
-          <div className="word-tiles">{[...word].map((l, i) => <span key={i} className={`word-tile ${i < tile || (i === tile && complete) ? "tile-done" : ""}`} aria-current={i === tile ? "step" : undefined}>{l}</span>)}</div>
-          {wordComplete && <Image src="/assets/monster-truck.png" alt="Truck driving across the completed word" width={1536} height={1024} sizes="80px" className="word-truck" />}
-        </div> : <div className="letter-choices">{availableLetters().map((l, i) => <button type="button" key={l.name} className="letter-choice" aria-label={`Practice ${l.name}`} aria-pressed={i === letterIndex} onClick={() => selectLetter(i)}>{l.name}<span aria-hidden="true">{progress.letters.includes(l.name) ? "★" : ""}</span></button>)}</div>}
-        <button type="button" className="trace-button hear-letter" onClick={() => speak(letter.speech)}>Hear {letter.name} ♪</button>
-        <p className="trace-status" role="status">{complete ? wordComplete ? `${word}! Good job, Collins!` : `${letter.name}! Good job, Collins!` : "Start at the number. Follow the arrow."}</p>
-        {complete && <div className="trace-actions">
-          {!wordComplete && <button type="button" className="trace-button next-road" onClick={nextRoad}>{word ? "Next letter →" : letterIndex === LETTERS.length - 1 ? "Back to A →" : `Next: ${LETTERS[letterIndex + 1].name} →`}</button>}
-          <button type="button" className="trace-button" onClick={() => { if (wordComplete) setTile(0); reset(); }}>{wordComplete ? "Write it again ↻" : "Drive again ↻"}</button>
-        </div>}
-        {words.length > 0 && <section className="word-choices" aria-label="Word Mode"><h3>Word roads</h3><div>{words.map((w) => <button type="button" key={w} className="trace-button" aria-pressed={word === w} onClick={() => selectWord(w)}>{w}{progress.words.includes(w) ? " ★" : ""}</button>)}</div></section>}
-        {word && <button type="button" className="trace-button" onClick={() => selectLetter(letterIndex)}>Letter roads</button>}
-      </section>
-      <TraceBoard key={`${word || "letters"}-${letter.name}-${tile}-${round}`} letter={letter} onComplete={finish} />
-    </div>
+  return <main className="trace-game fixed-trace">
+    <header className="trace-header"><Link href="/" className="trace-button home-link">⌂ Home</Link><button className="trace-button" onClick={()=>setChoosing(true)}>Choose</button><button className="trace-button" onClick={()=>speak(letter.speech)}>Hear ♪</button></header>
+    <div className="fixed-trace-stage"><section className="trace-summary"><h1>{word?`Write ${word}`:`Trace ${letter.name}`}</h1>
+      {word&&<div className="word-tiles">{[...word].map((l,i)=><span key={i} className={`word-tile ${i<tile||(i===tile&&complete)?'tile-done':''}`} aria-current={i===tile?'step':undefined}>{l}</span>)}</div>}
+      <p role="status">{complete?'Good job, Collins!':'Follow the numbered path.'}</p>
+      {complete&&<div className="trace-actions">{!wordComplete&&<button className="trace-button next-road" onClick={nextRoad}>{word?'Next letter →':'Next letter →'}</button>}<button className="trace-button" onClick={()=>{if(wordComplete)setTile(0);reset()}}>Again ↻</button></div>}
+    </section><TraceBoard key={`${word||'letters'}-${letter.name}-${tile}-${round}`} letter={letter} onComplete={finish}/></div>
+    {choosing&&<ChoiceDialog label="Choose a tracing road" onClose={()=>setChoosing(false)}>
+      <header><h2>Choose a road</h2><button autoFocus className="trace-button" onClick={()=>setChoosing(false)}>Done ✓</button></header>
+      <div className="choice-tabs"><button className="trace-button" aria-pressed={choices==='letters'} onClick={()=>setChoices('letters')}>Letters</button><button className="trace-button" aria-pressed={choices==='words'} onClick={()=>setChoices('words')}>Words</button></div>
+      {choices==='words'&&!words.length?<p>Trace letters to unlock their words.</p>:<ChoicePager key={choices} items={choices==='letters'?availableLetters().map(l=>({id:l.name,label:l.name+(progress.letters.includes(l.name)?' ★':'')})):words.map(w=>({id:w,label:w+(progress.words.includes(w)?' ★':'')}))} onChoose={id=>{if(choices==='letters')selectLetter(LETTERS.findIndex(l=>l.name===id));else selectWord(id);setChoosing(false)}}/>}
+    </ChoiceDialog>}
   </main>;
 }

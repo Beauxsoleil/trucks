@@ -27,7 +27,7 @@ On the home screen, **hold the truck logo for three seconds**. A settings-free p
 
 ## Tablet use
 
-Landscape is the main layout. The three home choices remain at least 200px tall on shorter landscape screens. Trace & Drive keeps the letter road visible while longer lists of letter/word choices scroll independently. Portrait layouts remain available; the app does not force orientation or disable page zoom.
+Each play page fits the viewport without scrolling. Home shows one large mode card at a time with Back/Next buttons. Tracing keeps the board visible and opens a four-choice paged picker through Choose. The parent panel pages through progress and its play tip. Fuel Lab keeps the tank and truck visible, with Pour and Test truck controls on the play screen; Materials, Tools, and Goals open separate paged panels. These panels trap keyboard focus and Escape closes them. Portrait and landscape layouts are supported; page zoom is not disabled.
 
 Audio starts after interaction. Keep the tablet volume comfortable. Reduced-motion preferences remove decorative movement while retaining the count, completed roads, and resets.
 
