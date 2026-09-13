@@ -17,3 +17,13 @@ test('moon jump is higher and floatier, with no midair double jump',()=>{
   let state=stepDrive({distance:0,speed:0,height:0,verticalSpeed:0},true,true,1/60,getLevel('moon'));
   assert.ok(stepDrive(state,true,true,1/60,getLevel('moon')).verticalSpeed<state.verticalSpeed);
 });
+test('every terrain remains traversable with jumping and bounded ground contact',()=>{
+ for(const level of LEVELS){
+  let state={distance:0,speed:0,height:0,verticalSpeed:0};
+  for(let i=0;i<3600&&state.distance<323;i++){
+   state=stepDrive(state,true,i%180===0,1/60,level,d=>terrainHeight(d,level.id));
+   assert.ok(state.height>=0&&Number.isFinite(state.height));assert.ok(state.speed>=0&&state.speed<=12);
+  }
+  assert.ok(state.distance>=323,level.id);
+ }
+});

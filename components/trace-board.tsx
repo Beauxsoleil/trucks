@@ -1,28 +1,40 @@
 "use client";
-import { useRef, useState, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type PointerEvent } from 'react';
 import { samplePaths, type RoadBin } from '@/lib/trace-geometry';
-import { advanceGuide, guidePoint, newGuidedTrace } from '@/lib/guided-trace';
+import { advanceGuideSamples, guidePoint, newGuidedTrace } from '@/lib/guided-trace';
 import { LETTERS } from '@/lib/trace-letters';
 type Letter=typeof LETTERS[number];
 export function TraceBoard({letter,onComplete}:{letter:Letter;onComplete:()=>void}){
   const paths=useRef<(SVGPathElement|null)[]>([]),bins=useRef<RoadBin[]>([]);
   const progress=useRef(newGuidedTrace()),pointer=useRef<number|null>(null),lift=useRef(false);
+  const frame=useRef<number|null>(null);
+  useEffect(()=>()=>{if(frame.current!==null)cancelAnimationFrame(frame.current);},[]);
   const [view,setView]=useState(newGuidedTrace),[paint,setPaint]=useState('');
   const [target,setTarget]=useState(()=>{const start=letter.paths[0].match(/^M(\d+) (\d+)/)!;return {x:Number(start[1]),y:Number(start[2])};});
+  function draw(){
+    frame.current=null;const next=progress.current;
+    setView(next);if(!next.complete)setTarget(guidePoint(bins.current,next));
+    const activeStart=bins.current.findIndex(item=>item.stroke===next.stroke);
+    const painted=bins.current.filter((b,i)=>b.stroke<next.stroke||(b.stroke===next.stroke&&i-activeStart<next.cursor));
+    // Continuous subpaths give curves smooth joins, without disconnected caps.
+    setPaint(painted.map((b,i)=>`${i===0||painted[i-1].stroke!==b.stroke?`M${b.start.x} ${b.start.y}`:''}L${b.end.x} ${b.end.y}`).join(' '));
+  }
   function move(event:PointerEvent<SVGSVGElement>){
     if(lift.current||progress.current.complete)return;
     const matrix=event.currentTarget.getScreenCTM();if(!matrix)return;
     if(!bins.current.length)bins.current=samplePaths(paths.current.filter((p):p is SVGPathElement=>p!==null),3);
     const before=progress.current;
-    const next=advanceGuide(bins.current,before,{x:event.clientX,y:event.clientY},p=>({x:matrix.a*p.x+matrix.c*p.y+matrix.e,y:matrix.b*p.x+matrix.d*p.y+matrix.f}));
-    progress.current=next;setView(next);if(!next.complete)setTarget(guidePoint(bins.current,next));
-    const activeStart=bins.current.findIndex(item=>item.stroke===next.stroke);
-    setPaint(bins.current.filter((b,i)=>b.stroke<next.stroke||(b.stroke===next.stroke&&i-activeStart<next.cursor)).map(b=>`M${b.start.x} ${b.start.y}L${b.end.x} ${b.end.y}`).join(' '));
+    const samples=event.nativeEvent.getCoalescedEvents?.()??[];
+    const points=[...samples,event.nativeEvent].map(sample=>({x:sample.clientX,y:sample.clientY}));
+    const next=advanceGuideSamples(bins.current,before,points,p=>({x:matrix.a*p.x+matrix.c*p.y+matrix.e,y:matrix.b*p.x+matrix.d*p.y+matrix.f}));
+    progress.current=next;
+    if(next.cursor!==before.cursor||next.stroke!==before.stroke||next.complete!==before.complete){if(frame.current===null)frame.current=requestAnimationFrame(draw);}
     if(next.stroke!==before.stroke)lift.current=true;
     if(next.complete&&!before.complete)onComplete();
   }
   function release(event:PointerEvent<SVGSVGElement>){
     if(pointer.current!==event.pointerId)return;
+    if(event.type==='pointerup')move(event);
     pointer.current=null;lift.current=false;progress.current={...progress.current,previous:null};
     if(event.currentTarget.hasPointerCapture(event.pointerId))event.currentTarget.releasePointerCapture(event.pointerId);
   }

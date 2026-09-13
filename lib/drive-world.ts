@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { roadPosition, roadHeading } from "./road";
-import { stepDrive, type DriveState } from "./drive-physics";
+import { stepDrive, stepSpring, type DriveState } from "./drive-physics";
 import { loadModel, makeAssetTruck, makeSceneryBatch, disposeModels } from "./model-assets";
 import { toyKit, makeTruck, makeBarn } from "./toy-models";
 import { BARN_DISTANCE, PICKUPS, deliveryAt, type DeliverySnapshot } from "./delivery";
@@ -66,7 +66,9 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
   let state:DriveState={distance:initial.distance,speed:0,height:0,verticalSpeed:0};
   let phase=initial.phase,collected=initial.collected;
   let gas=false,jump=false,paused=document.hidden,disposed=false;
-  let time=0,previous=0,landing=0,celebration=initial.phase==='delivered'?2:0;
+  let time=0,previous=0,celebration=initial.phase==='delivered'?2:0;
+  let suspension={offset:0,velocity:0},pitch={offset:0,velocity:0},roll={offset:0,velocity:0};
+  const surface=(distance:number)=>elevation(distance)+(bridge.visible?Math.max(0,1-Math.abs(distance-110)/5)*.26:0);
   const retired:THREE.Object3D[]=[];
   const forests:ReturnType<typeof makeSceneryBatch>[]=[];
   const loading=new AbortController();const loadTimeout=setTimeout(()=>loading.abort(),10000);
@@ -107,28 +109,34 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     const dt=previous?Math.min((stamp-previous)/1000,.05):0;previous=stamp;
     if(disposed||paused)return;
     time+=dt;
+    const oldSpeed=state.speed;
+    state.impact=0;
     if(phase==='driving'){
-      const oldHeight=state.height;
-      state=stepDrive(state,gas,jump,dt,level);
-      if(oldHeight>0&&state.height===0)landing=.16;
+      state=stepDrive(state,gas,jump,dt,level,surface);
       const delivery=deliveryAt(state.distance);
       if(delivery.collected>collected){collected=delivery.collected;events.collect(collected);}
       if(delivery.arrived){phase='tracing';state.distance=BARN_DISTANCE-12;state.speed=0;state.height=0;state.verticalSpeed=0;gas=false;events.arrive();}
     }
-    jump=false;landing=Math.max(0,landing-dt*.8);
-    const bridgeHeight=phase==='driving'&&bridge.visible?Math.max(0,1-Math.abs(state.distance-110)/5)*.26:0;
-    truck.root.position.y=state.height+bridgeHeight+elevation(state.distance);
-    truck.root.rotation.x = Math.atan((elevation(state.distance+.1)-elevation(state.distance-.1))/.2);
-    shadow.position.y = .07 + elevation(state.distance);
+    jump=false;
+    truck.root.position.y=state.height+surface(state.distance);
+    const slope=Math.atan((surface(state.distance+1.2)-surface(state.distance-1.2))/2.4);
+    const acceleration=dt>0?(state.speed-oldSpeed)/dt:0;
+    suspension=stepSpring(suspension,state.height>0?.06:Math.sin(state.distance*2)*.025*(state.speed/12),dt,-Math.min(2.5,(state.impact??0)*.16));
+    pitch=stepSpring(pitch,state.height>0?Math.max(-.22,Math.min(.22,state.verticalSpeed*.025)):slope-acceleration*.009,dt);
+    const turn=(roadHeading(state.distance+.5)-roadHeading(state.distance-.5))*state.speed;
+    roll=stepSpring(roll,Math.max(-.12,Math.min(.12,turn*state.speed*.018)),dt);
+    truck.root.rotation.x=reduced.matches?(state.height===0?slope:0):pitch.offset;
+    shadow.position.y = .07 + surface(state.distance);
     truck.root.rotation.y=roadHeading(state.distance);
     for(let i=0;i<=120;i++){
       const z=20-i,center=roadPosition(state.distance-z,state.distance);
       for(let side=0;side<2;side++){const n=(i*2+side)*3;roadVertices[n]=center.x+(side?4.5:-4.5);roadVertices[n+1]=.04+elevation(state.distance-z);roadVertices[n+2]=z;}
     }
     roadGeometry.attributes.position.needsUpdate=true;roadGeometry.computeVertexNormals();
-    truck.body.position.y=reduced.matches?0:-landing+(state.speed>0?Math.sin(state.distance*2)*.025:0);
-    truck.body.rotation.x=reduced.matches?0:-state.verticalSpeed*.012;
-    for(const spring of truck.springs)spring.scale.y=1+(reduced.matches?0:truck.body.position.y);
+    truck.body.position.y=reduced.matches?0:suspension.offset;
+    truck.body.rotation.x=0;
+    truck.body.rotation.z=reduced.matches?0:roll.offset;
+    for(const spring of truck.springs)spring.scale.y=1+(reduced.matches?0:suspension.offset+Math.sign(spring.position.x)*roll.offset*.4);
     for(const wheel of truck.wheels)wheel.rotation.x=-state.distance/.8;
     shadow.scale.set(1-state.height*.1,1.3-state.height*.1,1);
     for(const item of scenery){
@@ -152,6 +160,7 @@ export function createDriveWorld(host: HTMLElement, events: Events, initial: Del
     barn.sheep.position.y=reduced.matches?0:Math.abs(Math.sin(celebration*7))*Math.max(0,1-celebration/2)*.25;
     dust.forEach((p,i)=>{p.visible=!reduced.matches&&phase==='driving'&&state.speed>2&&state.height<.3;const cycle=(time*1.8+i/8)%1;p.position.set((i%2?1:-1)*(1.2+cycle*.6),elevation(state.distance)+.15+cycle*.5,1.5+cycle*3);p.scale.setScalar((1-cycle)*1.6);});
     renderer.domElement.dataset.speed=state.speed.toFixed(2);renderer.domElement.dataset.height=state.height.toFixed(2);
+    renderer.domElement.dataset.suspension=suspension.offset.toFixed(3);
     renderer.domElement.dataset.distance=state.distance.toFixed(2);renderer.domElement.dataset.phase=phase;renderer.domElement.dataset.collected=String(collected);renderer.domElement.dataset.word=initial.word;
     renderer.render(scene,camera);
   });

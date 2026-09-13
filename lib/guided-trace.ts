@@ -2,6 +2,12 @@ import type { Point, RoadBin } from './trace-geometry';
 const distance=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
 export type GuidedState = { stroke:number; cursor:number; previous:Point|null; complete:boolean };
 export const newGuidedTrace=():GuidedState=>({stroke:0,cursor:0,previous:null,complete:false});
+// Consume hardware samples, never invent a straight shortcut across a corner.
+export function advanceGuideSamples(bins:RoadBin[],state:GuidedState,points:Point[],transform:(p:Point)=>Point):GuidedState {
+  let next=state;
+  for(const point of points){next=advanceGuide(bins,next,point,transform);if(next.stroke!==state.stroke||next.complete)break;}
+  return next;
+}
 export function guidePoint(bins:RoadBin[],state:GuidedState):Point {
   const stroke=bins.filter(b=>b.stroke===state.stroke);
   return stroke[Math.min(state.cursor,stroke.length-1)]?.start??{x:210,y:75};
