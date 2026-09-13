@@ -27,3 +27,14 @@ python scripts/prepare-models.py /path/to/car-kit.zip /path/to/nature-kit.zip
 - `wheel-tractor-dark-back.glb`: `687d897c06072b05d0d094a020f455c19524c911c36ab7336b29d5bbdf055961` (49068 bytes)
 
 The game recolors the pickup’s green palette entries to blue at runtime; windows, lights, metal, and tires retain their source colors. The GLB files and hashes above are unchanged.
+# Four-world additions
+
+Selected Kenney Space Kit models (archive license identifies version 2.0), CC0, downloaded 2026-09-13 from https://kenney.nl/assets/space-kit. See `LICENSE-space-kit.txt` and `scripts/prepare-space-models.py`. Only the Moon loads these three models (58,912 bytes combined); no external texture requests.
+
+| File | SHA-256 |
+| --- | --- |
+| space-satelliteDish.glb | d741f8d078ffd44257278b3e227f30b8942032ab448f4f91b96bd9aa8c5607e4 |
+| space-rock_largeA.glb | 13b2bf393fcd7ca8c73d8a2a731da0be6c2c2b4e67ef0ae826e816c0d8733f2f |
+| space-rock_crystalsLargeA.glb | cfe8f339f6be4a321e5f3822237002b6a70f9c5d03596a7c347adabd5247fbd9 |
+
+Dinosaurs, footprints, snowmen, snow-covered trees, craters and destination buildings are original procedural toys in `lib/level-scenery.ts`, not downloaded Quaternius models. Research and selection details: `docs/LEVEL_RESEARCH.md`.

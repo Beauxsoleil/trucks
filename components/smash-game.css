@@ -1,4 +1,4 @@
-.drive-game { position: relative; height: 100svh; min-height: 360px; overflow: hidden; background: #bfeafa; color: #16374a; isolation: isolate; }
+.drive-game { position: relative; height: 100dvh; overflow: hidden; background: #bfeafa; color: #16374a; isolation: isolate; }
 .drive-world { position: absolute; inset: 0; z-index: -1; }
 .drive-world canvas { display: block; width: 100%; height: 100%; }
 .drive-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: max(14px, env(safe-area-inset-top)) 20px 8px; }
@@ -37,3 +37,5 @@
 @media (max-height: 480px) and (orientation: landscape) { .delivery-hud { justify-content: flex-end; padding-right: 20px; } .delivery-slots > span { width: 42px; height: 42px; font-size: 27px; } .delivery-intro, .delivery-finished { width: 330px; left: auto; right: 18px; transform: none; font-size: 19px; padding: 12px; } .delivery-intro button, .delivery-finished button { min-height: 54px; font-size: 24px; } .delivery-trace { top: 68px; padding: 6px 12px; } .delivery-trace p { display: none; } }
 
 .delivery-trace .trace-board{display:flex;flex-direction:column;overflow:hidden}.delivery-trace .trace-canvas{flex:1;height:0}.delivery-trace .stroke-instruction{flex-shrink:0;font-size:16px}.delivery-trace>.trace-button{min-height:48px;font-size:22px;flex-shrink:0}
+.delivery-intro h2{font-size:28px;font-weight:900}.delivery-intro p{font-size:18px;margin:4px 0}.level-nav{display:flex;align-items:center;gap:12px}.level-nav button{flex:1;font-size:22px;min-height:58px}.level-nav span{white-space:nowrap;font-size:18px}.drive-game[data-level="moon"] .drive-header h1{color:#fff;text-shadow:0 2px #17394b}
+@media(max-height:480px) and (orientation:landscape){.delivery-intro h2{font-size:24px}.delivery-intro p{font-size:16px}.delivery-intro .level-nav button{min-height:50px;margin-top:4px;font-size:21px}.delivery-intro>button{margin-top:6px}.delivery-intro{width:350px}}
